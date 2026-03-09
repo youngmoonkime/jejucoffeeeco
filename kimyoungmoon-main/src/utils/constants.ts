@@ -1,7 +1,9 @@
-export const NAVER_MAP_CLIENT_ID = "YOUR_NAVER_CLIENT_ID"; 
+export const NAVER_MAP_CLIENT_ID = "vx2n8kyqxd";
 export const APPS_SCRIPT_URLS: Record<string, string> = {
-  "2025": "https://script.google.com/macros/s/AKfycbyK85yXiY0oMkMzbqFrUPSbFYJOttvZsqePJ5OPYmdtRaHKgO_bUhxhyDFb8-n0_416/exec", // 2025년 데이터 URL (사용자 입력 필요)
-  "2026": "https://script.google.com/macros/s/AKfycbx3CIMOKJF_XreMA78tbVfdb0zQlFnX6oyxFK9ZTbiHovBCvwDpBM7DmNBXQSWz3WQp/exec"
+  "2025":
+    "https://script.google.com/macros/s/AKfycbyK85yXiY0oMkMzbqFrUPSbFYJOttvZsqePJ5OPYmdtRaHKgO_bUhxhyDFb8-n0_416/exec", // 2025년 데이터 URL (사용자 입력 필요)
+  "2026":
+    "https://script.google.com/macros/s/AKfycbx3CIMOKJF_XreMA78tbVfdb0zQlFnX6oyxFK9ZTbiHovBCvwDpBM7DmNBXQSWz3WQp/exec",
 };
 
 export const JEJU_COORDS: Record<string, { lat: number; lng: number }> = {
@@ -15,5 +17,5 @@ export const JEJU_COORDS: Record<string, { lat: number; lng: number }> = {
   "에이바우트커피 법원점": { lat: 33.4940, lng: 126.5365 },
   "메가MGC커피 제일도점": { lat: 33.5080, lng: 126.5350 },
   "빽다방 일도인제점": { lat: 33.5075, lng: 126.5345 },
-  "기본": { lat: 33.4890, lng: 126.4983 } 
+  "기본": { lat: 33.4890, lng: 126.4983 },
 };

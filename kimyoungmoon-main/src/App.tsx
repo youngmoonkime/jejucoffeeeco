@@ -10,7 +10,8 @@ import FloatingStatus from './components/FloatingStatus';
 import DataInputView from './components/DataInputView';
 import AnalysisView from './components/AnalysisView';
 import LogisticsView from './components/LogisticsView';
-import NaverMapView from './components/NaverMapView';
+import MapView from './components/MapView';
+import AIInsightsView from './components/AIInsightsView';
 import { APPS_SCRIPT_URLS, JEJU_COORDS } from './utils/constants';
 import { supabase } from './utils/supabase';
 
@@ -520,6 +521,18 @@ export default function App() {
               </motion.div>
             )}
 
+            {activeTab === 'ai_insights' && (
+              <motion.div
+                key="ai_insights"
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                transition={{ duration: 0.4 }}
+              >
+                <AIInsightsView isDarkMode={isDarkMode} />
+              </motion.div>
+            )}
+
             {activeTab === 'map' && (
               <motion.div
                 key="map"
@@ -528,10 +541,8 @@ export default function App() {
                 exit={{ opacity: 0 }}
                 className="h-[600px] md:h-[700px] rounded-[40px] overflow-hidden shadow-2xl border border-gray-200/20 glass"
               >
-                <NaverMapView 
+                <MapView 
                   locations={locations} 
-                  selectedLocation={selectedLocation} 
-                  setSelectedLocation={setSelectedLocation} 
                   isDarkMode={isDarkMode} 
                 />
               </motion.div>
