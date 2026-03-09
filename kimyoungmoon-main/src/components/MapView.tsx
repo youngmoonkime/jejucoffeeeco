@@ -68,100 +68,96 @@ export default function MapView({ locations, isDarkMode }: MapViewProps) {
     };
   }, []);
 
+  // 지도 초기화 (최초 1회)
   useEffect(() => {
-    const initMap = () => {
-      if (!mapRef.current || !window.naver?.maps?.Map || !window.naver?.maps?.LatLng || !window.naver?.maps?.Marker) {
-        console.log("Naver Maps SDK components not fully ready yet");
-        return;
-      }
+    if (loadState !== 'loaded' || !mapRef.current || !window.naver?.maps || naverMapRef.current) return;
 
-      console.log("Initializing map with", locations.length, "locations");
+    try {
+      const mapOptions = {
+        center: new window.naver.maps.LatLng(33.4890, 126.4983),
+        zoom: 12,
+        minZoom: 10,
+        mapTypeId: window.naver.maps.MapTypeId.NORMAL,
+        zoomControl: true,
+        zoomControlOptions: {
+          position: window.naver.maps.Position.TOP_RIGHT,
+          style: window.naver.maps.ZoomControlStyle.SMALL
+        },
+        background: isDarkMode ? '#111827' : '#f8fafc'
+      };
 
-      try {
-        const mapOptions = {
-          center: new window.naver.maps.LatLng(33.4890, 126.4983),
-          zoom: 12,
-          minZoom: 10,
-          mapTypeId: window.naver.maps.MapTypeId.NORMAL,
-          zoomControl: true,
-          zoomControlOptions: {
-            position: window.naver.maps.Position.TOP_RIGHT,
-            style: window.naver.maps.ZoomControlStyle.SMALL
-          },
-          background: isDarkMode ? '#111827' : '#f8fafc'
-        };
+      const map = new window.naver.maps.Map(mapRef.current, mapOptions);
+      naverMapRef.current = map;
+      console.log("Map initialized successfully");
+    } catch (e) {
+      console.error("Map initialization failed", e);
+      setLoadState('error');
+    }
+  }, [loadState, isDarkMode]);
 
-        const map = new window.naver.maps.Map(mapRef.current, mapOptions);
-        naverMapRef.current = map;
+  // 마커 업데이트 (데이터 변경 시)
+  useEffect(() => {
+    const map = naverMapRef.current;
+    if (!map || !window.naver?.maps) return;
 
-        locations.forEach((loc) => {
-          if (!loc.lat || !loc.lng || !window.naver?.maps?.Marker || !window.naver?.maps?.LatLng) return;
+    const markers: any[] = [];
 
-          const marker = new window.naver.maps.Marker({
-            position: new window.naver.maps.LatLng(loc.lat, loc.lng),
-            map: map,
-            title: loc.name,
-            icon: {
-              content: `
-                <div class="group relative" style="cursor: pointer;">
-                  <div class="flex items-center justify-center w-10 h-10 rounded-full bg-white shadow-xl border-2 border-[#059669] transform transition-transform group-hover:scale-125">
-                    <div class="w-6 h-6 text-[#059669]">
-                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                         <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
-                         <circle cx="12" cy="10" r="3"></circle>
-                       </svg>
-                    </div>
-                  </div>
+    locations.forEach((loc) => {
+      if (!loc.lat || !loc.lng || !window.naver?.maps?.Marker) return;
+
+      const marker = new window.naver.maps.Marker({
+        position: new window.naver.maps.LatLng(loc.lat, loc.lng),
+        map: map,
+        title: loc.name,
+        icon: {
+          content: `
+            <div class="group relative" style="cursor: pointer;">
+              <div class="flex items-center justify-center w-10 h-10 rounded-full bg-white shadow-xl border-2 border-[#059669] transform transition-transform group-hover:scale-125">
+                <div class="w-6 h-6 text-[#059669]">
+                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;">
+                     <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
+                     <circle cx="12" cy="10" r="3"></circle>
+                   </svg>
                 </div>
-              `,
-              anchor: new window.naver.maps.Point(20, 20)
-            }
-          });
+              </div>
+            </div>
+          `,
+          anchor: new window.naver.maps.Point(20, 20)
+        }
+      });
 
-          if (window.naver?.maps?.InfoWindow) {
-            const infowindow = new window.naver.maps.InfoWindow({
-              content: `
-                <div style="padding: 16px; min-width: 200px; border-radius: 20px; background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border: none;">
-                   <h4 style="margin: 0 0 4px; font-weight: 900; color: #111; font-size: 14px;">${loc.name}</h4>
-                   <p style="margin: 0 0 8px; color: #666; font-size: 12px;">상태: ${loc.status === 'done' ? '기록완료' : '대기중'}</p>
-                   <div style="height: 1px; background: #eee; margin-bottom: 8px;"></div>
-                   <span style="font-size: 10px; font-weight: 800; color: #059669; text-transform: uppercase;">Logistics Point</span>
-                </div>
-              `,
-              borderWidth: 0,
-              backgroundColor: 'transparent',
-              anchorSize: new window.naver.maps.Size(0, 0),
-              pixelOffset: new window.naver.maps.Point(0, -10)
-            });
+      if (window.naver?.maps?.InfoWindow) {
+        const infowindow = new window.naver.maps.InfoWindow({
+          content: `
+            <div style="padding: 16px; min-width: 200px; border-radius: 20px; background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border: none;">
+               <h4 style="margin: 0 0 4px; font-weight: 900; color: #111; font-size: 14px;">${loc.name}</h4>
+               <p style="margin: 0 0 8px; color: #666; font-size: 12px;">상태: ${loc.status === 'done' ? '기록완료' : '대기중'}</p>
+               <div style="height: 1px; background: #eee; margin-bottom: 8px;"></div>
+               <span style="font-size: 10px; font-weight: 800; color: #059669; text-transform: uppercase;">Logistics Point</span>
+            </div>
+          `,
+          borderWidth: 0,
+          backgroundColor: 'transparent',
+          anchorSize: new window.naver.maps.Size(0, 0),
+          pixelOffset: new window.naver.maps.Point(0, -10)
+        });
 
-            window.naver.maps.Event.addListener(marker, 'click', () => {
-              if (infowindow.getMap()) {
-                infowindow.close();
-              } else {
-                infowindow.open(map, marker);
-              }
-            });
+        window.naver.maps.Event.addListener(marker, 'click', () => {
+          if (infowindow.getMap()) {
+            infowindow.close();
+          } else {
+            infowindow.open(map, marker);
           }
         });
-        setLoadState('loaded');
-      } catch (e) {
-        console.error("Map initialization failed", e);
-        setLoadState('error');
       }
-    };
 
-    if (window.naver?.maps?.Marker) {
-      initMap();
-    } else {
-      const interval = setInterval(() => {
-        if (window.naver?.maps?.Marker) {
-          initMap();
-          clearInterval(interval);
-        }
-      }, 200);
-      return () => clearInterval(interval);
-    }
-  }, [loadState, locations, isDarkMode]);
+      markers.push(marker);
+    });
+
+    return () => {
+      markers.forEach(m => m.setMap(null));
+    };
+  }, [locations, loadState]); // locations가 바뀔 때만 마커 갱신
 
   return (
     <div className="h-full flex flex-col space-y-6">
