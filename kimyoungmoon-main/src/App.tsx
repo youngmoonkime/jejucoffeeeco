@@ -1,3 +1,4 @@
+// Jeju Coffee eCommerce Logistics Dashboard - Cloudflare Build Trigger
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Menu, Sun, Moon, RefreshCw, CloudRain, Cloud, Check, Download, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
