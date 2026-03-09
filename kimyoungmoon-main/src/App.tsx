@@ -85,7 +85,7 @@ export default function App() {
       setWeather({ temp, condition, humidity, windSpeed, rain });
 
       // 시간대별 예보 (1시간 단위 제공을 위해 Open-Meteo 사용)
-      const forecastRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,weathercode&forecast_days=1`);
+      const forecastRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,weathercode&forecast_days=1&timezone=auto`);
       const forecastData = await forecastRes.json();
       
       const currentHour = new Date().getHours();
