@@ -20,9 +20,6 @@ export default function MapView({ locations, isDarkMode }: MapViewProps) {
   const [loadState, setLoadState] = useState<'loading' | 'loaded' | 'error'>('loading');
 
   useEffect(() => {
-    let interval: any;
-    let timeout: any;
-
     const loadScript = () => {
       if (window.naver?.maps) {
         setLoadState('loaded');
@@ -31,41 +28,34 @@ export default function MapView({ locations, isDarkMode }: MapViewProps) {
 
       // 스크립트가 이미 있는지 확인
       const existingScript = document.getElementById('naver-map-sdk');
-      if (!existingScript) {
-        const script = document.createElement('script');
-        script.id = 'naver-map-sdk';
-        script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${NAVER_MAP_CLIENT_ID}`;
-        script.async = true;
-        document.head.appendChild(script);
-        console.log("Naver Map SDK script injected for Client ID:", NAVER_MAP_CLIENT_ID);
-        console.log("Current URI for Naver Console Registration:", window.location.origin);
-      }
+      if (existingScript) return;
 
-      // 스크립트 로드 대기 폴링
-      interval = setInterval(() => {
-        if (window.naver?.maps) {
-          console.log("Naver Map SDK loaded successfully");
-          setLoadState('loaded');
-          clearInterval(interval);
-          clearTimeout(timeout);
-        }
-      }, 100);
+      // 전역 콜백 함수 등록
+      (window as any).initNaverMap = () => {
+        console.log("Naver Map SDK loaded successfully via callback");
+        setLoadState('loaded');
+      };
 
-      // 10초 후에도 로드 안되면 에러 처리
-      timeout = setTimeout(() => {
-        clearInterval(interval);
-        if (!window.naver?.maps) {
-          console.error("Naver Map SDK load timeout");
-          setLoadState('error');
-        }
-      }, 10000);
+      const script = document.createElement('script');
+      script.id = 'naver-map-sdk';
+      // callback 파라미터 추가
+      script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${NAVER_MAP_CLIENT_ID}&callback=initNaverMap`;
+      script.async = true;
+      script.onerror = () => {
+        console.error("Naver Map SDK load error");
+        setLoadState('error');
+      };
+      document.head.appendChild(script);
+      console.log("Naver Map SDK script injected with callback for Client ID:", NAVER_MAP_CLIENT_ID);
     };
 
     loadScript();
 
     return () => {
-      clearInterval(interval);
-      clearTimeout(timeout);
+      // 컴포넌트 언마운트 시 전역 콜백 정리 (선택사항)
+      if ((window as any).initNaverMap) {
+        delete (window as any).initNaverMap;
+      }
     };
   }, []);
 
