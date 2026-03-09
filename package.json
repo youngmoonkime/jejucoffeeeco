@@ -5,6 +5,10 @@
     "dev": "npm run dev --prefix kimyoungmoon-main",
     "build": "npm run build --prefix kimyoungmoon-main",
     "preview": "npm run preview --prefix kimyoungmoon-main",
-    "install-all": "npm install --prefix kimyoungmoon-main"
+    "install-all": "npm install --prefix kimyoungmoon-main",
+    "deploy": "git push origin main"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1"
   }
 }
