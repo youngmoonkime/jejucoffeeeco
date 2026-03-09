@@ -1,0 +1,10 @@
+{
+  "name": "jejucoffe-root",
+  "private": true,
+  "scripts": {
+    "dev": "npm run dev --prefix kimyoungmoon-main",
+    "build": "npm run build --prefix kimyoungmoon-main",
+    "preview": "npm run preview --prefix kimyoungmoon-main",
+    "install-all": "npm install --prefix kimyoungmoon-main"
+  }
+}
