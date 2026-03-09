@@ -40,7 +40,7 @@ export default function App() {
   const availableMonths = selectedYear === '2025' 
     ? ['4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
     : ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
-  const availableWeeks = ['1주차', '2주차', '3주차', '4주차', '5주차'];
+  const [availableWeeks, setAvailableWeeks] = useState<string[]>(['1주차', '2주차', '3주차', '4주차', '5주차']);
   const [locations, setLocations] = useState<any[]>([]);
   const [weeklyTotals, setWeeklyTotals] = useState<any[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
@@ -279,8 +279,16 @@ export default function App() {
       });
 
       // 주차별 합계 계산 (AnalysisView 용)
-      const weeks = ['1주차', '2주차', '3주차', '4주차', '5주차'];
-      const tempWeeklyTotals = weeks.map(w => {
+      const dynamicWeeks = weekColIndices.map(wi => wi.label);
+      if (dynamicWeeks.length > 0) {
+        setAvailableWeeks(dynamicWeeks);
+        // 만약 현재 선택된 주차가 새로운 리스트에 없다면 첫 번째 주차로 리셋
+        if (!dynamicWeeks.includes(targetWeek)) {
+          setSelectedWeek(dynamicWeeks[0]);
+        }
+      }
+
+      const tempWeeklyTotals = dynamicWeeks.map(w => {
         const weekInfo = weekColIndices.find(wi => wi.label === w);
         let weight = 0;
         if (weekInfo) {
