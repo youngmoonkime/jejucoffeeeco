@@ -38,8 +38,8 @@ export default function MapView({ locations, isDarkMode }: MapViewProps) {
 
       const script = document.createElement('script');
       script.id = 'naver-map-sdk';
-      // callback 파라미터 추가
-      script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${NAVER_MAP_CLIENT_ID}&callback=initNaverMap`;
+      // callback 파라미터 추가 및 ncpKeyId로 수정
+      script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${NAVER_MAP_CLIENT_ID}&callback=initNaverMap`;
       script.async = true;
       script.onerror = () => {
         console.error("Naver Map SDK load error");
