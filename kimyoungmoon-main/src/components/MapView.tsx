@@ -37,7 +37,8 @@ export default function MapView({ locations, isDarkMode }: MapViewProps) {
         script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${NAVER_MAP_CLIENT_ID}`;
         script.async = true;
         document.head.appendChild(script);
-        console.log("Naver Map SDK script injected");
+        console.log("Naver Map SDK script injected for Client ID:", NAVER_MAP_CLIENT_ID);
+        console.log("Current URI for Naver Console Registration:", window.location.origin);
       }
 
       // 스크립트 로드 대기 폴링
