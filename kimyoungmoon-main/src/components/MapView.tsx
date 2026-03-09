@@ -68,9 +68,16 @@ export default function MapView({ locations, isDarkMode }: MapViewProps) {
     };
   }, []);
 
-  // 지도 초기화 (최초 1회)
+  // 지도 초기화 및 테마 동기화
   useEffect(() => {
-    if (loadState !== 'loaded' || !mapRef.current || !window.naver?.maps || naverMapRef.current) return;
+    if (loadState !== 'loaded' || !mapRef.current || !window.naver?.maps) return;
+
+    // 기존 지도가 있다면 제거 (테마 변경 대응)
+    if (naverMapRef.current) {
+      // Naver Maps API does not have a destroy() but we can clear the ref
+      naverMapRef.current = null;
+      if (mapRef.current) mapRef.current.innerHTML = '';
+    }
 
     try {
       const mapOptions = {
@@ -83,17 +90,20 @@ export default function MapView({ locations, isDarkMode }: MapViewProps) {
           position: window.naver.maps.Position.TOP_RIGHT,
           style: window.naver.maps.ZoomControlStyle.SMALL
         },
+        draggable: true,
+        scrollWheel: true,
+        pinchZoom: true,
         background: isDarkMode ? '#111827' : '#f8fafc'
       };
 
       const map = new window.naver.maps.Map(mapRef.current, mapOptions);
       naverMapRef.current = map;
-      console.log("Map initialized successfully");
+      console.log("Map initialized successfully with interactions enabled");
     } catch (e) {
       console.error("Map initialization failed", e);
       setLoadState('error');
     }
-  }, [loadState, isDarkMode]);
+  }, [loadState, isDarkMode]); // isDarkMode 변경 시 지도 재생성
 
   // 마커 업데이트 (데이터 변경 시)
   useEffect(() => {
@@ -111,7 +121,7 @@ export default function MapView({ locations, isDarkMode }: MapViewProps) {
         title: loc.name,
         icon: {
           content: `
-            <div class="group relative" style="cursor: pointer;">
+            <div class="group relative" style="cursor: pointer; z-index: 1000;">
               <div class="flex items-center justify-center w-10 h-10 rounded-full bg-white shadow-xl border-2 border-[#059669] transform transition-transform group-hover:scale-125">
                 <div class="w-6 h-6 text-[#059669]">
                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;">
@@ -157,7 +167,7 @@ export default function MapView({ locations, isDarkMode }: MapViewProps) {
     return () => {
       markers.forEach(m => m.setMap(null));
     };
-  }, [locations, loadState]); // locations가 바뀔 때만 마커 갱신
+  }, [locations, isDarkMode, loadState]); // 지도 재생성 시 마커도 다시 그림
 
   return (
     <div className="h-full flex flex-col space-y-6">
@@ -186,7 +196,11 @@ export default function MapView({ locations, isDarkMode }: MapViewProps) {
         animate={{ opacity: 1, scale: 1 }}
         className={`flex-1 rounded-[40px] border shadow-2xl overflow-hidden glass relative flex items-center justify-center ${isDarkMode ? 'bg-gray-900/50' : 'bg-white/50'}`}
       >
-        <div ref={mapRef} className="absolute inset-0 w-full h-full grayscale-[0.2]" />
+        <div 
+          ref={mapRef} 
+          className="absolute inset-0 w-full h-full z-0"
+          style={{ pointerEvents: 'auto' }}
+        />
         
         <AnimatePresence>
           {loadState === 'loading' && (
