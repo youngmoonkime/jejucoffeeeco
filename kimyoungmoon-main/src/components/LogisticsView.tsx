@@ -94,6 +94,33 @@ export default function LogisticsView({ logs, searchTerm, setSearchTerm, onEdit,
                           <Clock size={13} />
                           <span className={`font-bold text-[13px] ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{l.time}</span>
                         </div>
+                        <div className="flex items-center gap-1.5 text-emerald-500">
+                          <span className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider ${l.category === '목장 데이터' ? 'bg-blue-500/20 text-blue-400' : 'bg-emerald-500/20 text-emerald-400'}`}>
+                            {l.category}
+                          </span>
+                        </div>
+                        {l.category === '목장 데이터' && (
+                          <>
+                            {l.depth !== undefined && l.depth !== '' && (
+                              <div className="flex items-center gap-1 text-gray-400">
+                                <span className="text-[11px] font-bold">심도:</span>
+                                <span className="text-[11px] font-medium">{l.depth}cm</span>
+                              </div>
+                            )}
+                            {l.temp !== undefined && l.temp !== '' && (
+                              <div className="flex items-center gap-1 text-gray-400">
+                                <span className="text-[11px] font-bold">온도:</span>
+                                <span className="text-[11px] font-medium">{l.temp}°C</span>
+                              </div>
+                            )}
+                            {l.humidity !== undefined && l.humidity !== '' && (
+                              <div className="flex items-center gap-1 text-gray-400">
+                                <span className="text-[11px] font-bold">습도:</span>
+                                <span className="text-[11px] font-medium">{l.humidity}%</span>
+                              </div>
+                            )}
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>

@@ -1,6 +1,6 @@
 // Jeju Coffee eCommerce Logistics Dashboard - Cloudflare Build Trigger
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Menu, Sun, Moon, RefreshCw, CloudRain, Cloud, Check, Download, X } from 'lucide-react';
+import { Menu, Sun, Moon, RefreshCw, CloudRain, Cloud, Check, Download, X, Milk, PenTool, MapPin, PlusCircle, Navigation, Phone } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import Sidebar from './components/Sidebar';
 import NextDestination from './components/NextDestination';
@@ -13,6 +13,11 @@ import LogisticsView from './components/LogisticsView';
 import MapView from './components/MapView';
 import AIInsightsView from './components/AIInsightsView';
 import { APPS_SCRIPT_URLS, JEJU_COORDS } from './utils/constants';
+
+const RANCHES = [
+  { id: 1, name: "다원 목장" }
+];
+
 import { supabase } from './utils/supabase';
 
 // Helper to parse sheet data (Legacy - kept for fallback or reference)
@@ -56,6 +61,7 @@ export default function App() {
   const [isInputModalOpen, setIsInputModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<any>(null);
+  const [forcedCategory, setForcedCategory] = useState<string | undefined>(undefined);
   const isFirstLoad = useRef(true);
   const submissionsRef = useRef<{[key: string]: {date: string, time: string}}>(
     JSON.parse(localStorage.getItem('recentSubmissions') || '{}')
@@ -162,6 +168,22 @@ export default function App() {
         return acc;
       }, []);
 
+      const memoColIndex = headerRow.findIndex((cell: any) => {
+        const s = String(cell).toLowerCase().replace(/\s/g, '');
+        return s.includes('메모') || s.includes('특이사항') || s.includes('note') || s.includes('memo');
+      });
+      
+      const categoryColIndex = headerRow.findIndex((cell: any) => {
+        const s = String(cell).toLowerCase().replace(/\s/g, '');
+        return s.includes('카테고리') || s.includes('구분') || s.includes('category');
+      });
+
+      const mixtureColIndex = headerRow.findIndex((cell: any) => String(cell).includes('혼합'));
+      const tempColIndex = headerRow.findIndex((cell: any) => String(cell).includes('온도'));
+      const workingTimeColIndex = headerRow.findIndex((cell: any) => String(cell).includes('작업시간') || String(cell).includes('소요시간'));
+      const depthColIndex = headerRow.findIndex((cell: any) => String(cell).includes('심도') || String(cell).includes('높이'));
+      const humidityColIndex = headerRow.findIndex((cell: any) => String(cell).includes('습도'));
+
       const validRows = data.filter((row: any[]) => row[0] && !isNaN(Number(row[0])) && row[nameColIndex] && !String(row[nameColIndex]).includes('총계'));
 
       // 병합된 셀(연휴 등) 채우기
@@ -180,34 +202,110 @@ export default function App() {
         }
       });
 
-      // 1. 매장 정보 및 기록 추출
+      const getHistoryForMonth = (headerRow: any[], rows: any[], targetLocName: string) => {
+        const hNameColIdx = headerRow.indexOf('매장명');
+        const hWeekColIndices = headerRow.reduce((acc: {label: string, idx: number}[], cell: any, idx: number) => {
+          if (String(cell).includes('주차')) {
+            acc.push({ label: String(cell).split('(')[0].trim(), idx });
+          }
+          return acc;
+        }, []);
+        
+        const row = rows.find(r => String(r[hNameColIdx]).trim() === targetLocName);
+        if (!row) return [];
+
+        // Fill merged cells for this specific row's weeks
+        hWeekColIndices.forEach(({ idx }) => {
+          if (String(row[idx] || '').trim() === '' && rows.indexOf(row) > 0) {
+            // Check previous rows for merged value if needed, but for history we usually care about the numeric value
+            // simplified for history: just return the numeric weights
+          }
+        });
+
+        return hWeekColIndices.map(({label, idx}) => {
+          const weightVal = row[idx];
+          const numVal = parseFloat(String(weightVal || '').trim());
+          return { label, weight: isNaN(numVal) ? 0 : numVal };
+        });
+      };
+
+      // 1. Fetch current month and potentially previous month for history
+      const prevMonthMap: {[key: string]: string} = {
+        '1월': '12월', '2월': '1월', '3월': '2월', '4월': '3월', '5월': '4월', '6월': '5월',
+        '7월': '6월', '8월': '7월', '9월': '8월', '10월': '9월', '11월': '10월', '12월': '11월'
+      };
+      
+      const prevMonth = prevMonthMap[targetMonth];
+      const prevYear = targetMonth === '1월' ? String(parseInt(targetYear) - 1) : targetYear;
+      
+      let prevMonthResult = null;
+      const targetWeekIdx = weekColIndices.findIndex(wi => wi.label === targetWeek);
+      
+      // If we need more than available in current month (before target week)
+      // Showing last 4 weeks trend
+      if (targetWeekIdx < 4 && APPS_SCRIPT_URLS[prevYear]) {
+        try {
+          const prevUrl = `${APPS_SCRIPT_URLS[prevYear]}?sheet=${encodeURIComponent(prevMonth)}&t=${timestamp}`;
+          const prevResponse = await fetch(prevUrl, { redirect: 'follow' });
+          prevMonthResult = await prevResponse.json();
+        } catch (e) {
+          console.warn("이전 달 데이터 불러오기 실패 (히스토리용)", e);
+        }
+      }
+
       const parsedLocations = validRows.map((row: any[]) => {
         const locId = parseInt(row[0]);
         const locName = String(row[nameColIndex]).trim();
         const lat = JEJU_COORDS[locName]?.lat || JEJU_COORDS["기본"].lat;
         const lng = JEJU_COORDS[locName]?.lng || JEJU_COORDS["기본"].lng;
 
-        // 월간 총 합계
+        // history calculation
+        let combinedHistory: { name: string, weight: number }[] = [];
+        
+        // Add previous month history if available
+        if (prevMonthResult && prevMonthResult.data) {
+          const prevRows = prevMonthResult.data.slice(1);
+          const prevHeader = prevMonthResult.data[0];
+          const prevHist = getHistoryForMonth(prevHeader, prevRows, locName);
+          combinedHistory = prevHist;
+        }
+
+        // Add current month history
+        weekColIndices.forEach(({label, idx}) => {
+          const weightVal = row[idx];
+          const numVal = parseFloat(String(weightVal || '').trim());
+          combinedHistory.push({ name: label, weight: isNaN(numVal) ? 0 : numVal });
+        });
+
+        // Current status/weight based on targetWeek
+        const targetCombinedIdx = combinedHistory.findIndex(h => h.name === targetWeek);
+        // Show last 4 weeks trend ending before current target week
+        const historyToShow = combinedHistory.slice(Math.max(0, targetCombinedIdx - 4), targetCombinedIdx);
+        
+        let lastWeekWeight = 0;
+        if (historyToShow.length > 0) {
+          lastWeekWeight = historyToShow[historyToShow.length - 1].weight;
+        }
+
         let totalWeight = 0;
         let currentWeight = 0;
         let status = 'pending';
         let note = '';
 
         weekColIndices.forEach(({label, idx}) => {
-          const weightVal = row[idx];
-          const strVal = weightVal !== undefined && weightVal !== null ? String(weightVal).trim() : '';
-          
+          const strVal = String(row[idx] || '').trim();
+          const numVal = parseFloat(strVal);
+
           if (strVal !== "") {
             if (strVal === '-' || (isNaN(Number(strVal)) && strVal !== '')) {
               if (label === targetWeek) {
                 status = 'skipped';
                 note = strVal;
               }
-            } else if (!isNaN(parseFloat(strVal))) {
-              const weight = parseFloat(strVal);
-              totalWeight += weight;
+            } else if (!isNaN(numVal)) {
+              totalWeight += numVal;
               if (label === targetWeek) {
-                currentWeight = weight;
+                currentWeight = numVal;
                 status = 'done';
               }
             }
@@ -222,7 +320,17 @@ export default function App() {
           total: totalWeight,
           currentWeight: currentWeight,
           status,
-          note
+          note: note || (memoColIndex !== -1 ? String(row[memoColIndex] || '') : ''),
+          category: (categoryColIndex !== -1 ? String(row[categoryColIndex] || '') : '') === '제주우유 까대기' 
+            ? '목장 데이터' 
+            : (categoryColIndex !== -1 ? String(row[categoryColIndex] || '커피박 수거') : '커피박 수거'),
+          mixture: mixtureColIndex !== -1 ? String(row[mixtureColIndex] || '') : '',
+          temp: tempColIndex !== -1 ? String(row[tempColIndex] || '') : '',
+          workingTime: workingTimeColIndex !== -1 ? String(row[workingTimeColIndex] || '') : '',
+          depth: depthColIndex !== -1 ? String(row[depthColIndex] || '') : '',
+          humidity: humidityColIndex !== -1 ? String(row[humidityColIndex] || '') : '',
+          history: historyToShow.length > 0 ? historyToShow : [{name: '데이터 없음', weight: 0}, {name: '데이터 없음', weight: 0}],
+          lastWeekWeight
         };
       });
 
@@ -271,7 +379,16 @@ export default function App() {
                 time: actualTime,
                 weight: parseFloat(strVal),
                 isSkipped: false,
-                weekLabel: label
+                weekLabel: label,
+                memo: memoColIndex !== -1 ? String(row[memoColIndex] || '') : '',
+                category: (categoryColIndex !== -1 ? String(row[categoryColIndex] || '') : '') === '제주우유 까대기' 
+                  ? '목장 데이터' 
+                  : (categoryColIndex !== -1 ? String(row[categoryColIndex] || '커피박 수거') : '커피박 수거'),
+                mixture: mixtureColIndex !== -1 ? String(row[mixtureColIndex] || '') : '',
+                temp: tempColIndex !== -1 ? String(row[tempColIndex] || '') : '',
+                workingTime: workingTimeColIndex !== -1 ? String(row[workingTimeColIndex] || '') : '',
+                depth: depthColIndex !== -1 ? String(row[depthColIndex] || '') : '',
+                humidity: humidityColIndex !== -1 ? String(row[humidityColIndex] || '') : ''
               });
             }
           }
@@ -483,8 +600,9 @@ export default function App() {
                   <section className="col-span-1 lg:col-span-8 h-full">
                     <NextDestination 
                       location={nextLocation} 
-                      onRecordClick={(storeName) => {
+                      onRecordClick={(storeName, forceCategory) => {
                         setTargetStore(storeName || "");
+                        setForcedCategory(forceCategory);
                         setIsInputModalOpen(true);
                       }} 
                       isDarkMode={isDarkMode} 
@@ -541,6 +659,102 @@ export default function App() {
               </motion.div>
             )}
 
+            {activeTab === 'jeju_milk' && (
+              <motion.div 
+                key="jeju_milk"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="flex flex-col gap-6 max-w-4xl mx-auto w-full pt-6 pb-20"
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-20 h-20 bg-blue-500/10 rounded-[28px] flex items-center justify-center text-blue-500 mb-6 border border-blue-500/20 shadow-xl shadow-blue-500/10">
+                    <Milk size={40} />
+                  </div>
+                  <h2 className={`text-[36px] font-black mb-3 tracking-tighter ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>목장 데이터</h2>
+                  <p className={`text-base font-medium max-w-lg leading-relaxed mb-10 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    목장용 커피박의 부숙(발효) 과정을 관리하고 심도, 온도, 습도를 기록합니다.
+                  </p>
+                  
+                  {(() => {
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    const ranchLogs = logs.filter(l => l.category === '목장 데이터');
+                    const todayRanchLogs = ranchLogs.filter(l => l.date === todayStr);
+                    
+                    return (
+                      <>
+                        <div className="grid grid-cols-2 gap-4 w-full mb-8">
+                          <div className={`p-6 rounded-[32px] border ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-blue-50/50 border-blue-100 shadow-sm'}`}>
+                            <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1.5">오늘 기록 건수</p>
+                            <p className={`text-3xl font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{todayRanchLogs.length} <span className="text-sm opacity-50 font-bold">건</span></p>
+                          </div>
+                          <div className={`p-6 rounded-[32px] border ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-blue-50/50 border-blue-100 shadow-sm'}`}>
+                            <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1.5">진행 상태</p>
+                            <p className={`text-xl font-black text-blue-600`}>{todayRanchLogs.length > 0 ? '기록 진행 중' : '기록 대기 중'}</p>
+                          </div>
+                        </div>
+
+                        <motion.button 
+                          whileHover={{ scale: 1.02, y: -2 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => {
+                            setTargetStore('다원 목장');
+                            setForcedCategory('목장 데이터');
+                            setIsInputModalOpen(true);
+                          }}
+                          className="w-full bg-blue-600 text-white py-6 rounded-[32px] font-black text-xl shadow-xl shadow-blue-500/30 flex items-center justify-center gap-3 transition-all mb-12"
+                        >
+                          <PenTool className="w-6 h-6" />
+                          새 목장 데이터 기록하기
+                        </motion.button>
+
+                        {ranchLogs.length > 0 && (
+                          <div className="w-full space-y-4">
+                            <div className="flex items-center justify-between px-2">
+                              <h3 className={`text-lg font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>최근 목장 기록</h3>
+                              <span className="text-[11px] font-bold text-gray-500 bg-gray-500/10 px-2 py-0.5 rounded-md">최근 5건</span>
+                            </div>
+                            <div className="grid grid-cols-1 gap-3">
+                              {ranchLogs.slice(0, 5).map((l, i) => (
+                                <motion.div 
+                                  key={l.id}
+                                  initial={{ opacity: 0, x: -10 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  transition={{ delay: i * 0.05 }}
+                                  className={`p-5 rounded-[28px] border flex items-center justify-between glass transition-all hover:bg-blue-500/5 ${isDarkMode ? 'border-white/5' : 'border-gray-100 shadow-sm'}`}
+                                >
+                                  <div className="flex items-center gap-4">
+                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xs font-black ${isDarkMode ? 'bg-white/5 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
+                                      {l.date === todayStr ? '오늘' : l.date.slice(5)}
+                                    </div>
+                                    <div className="text-left">
+                                      <p className={`font-bold text-[17px] tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{l.storeName}</p>
+                                      <div className="flex items-center gap-3 mt-1 opacity-60 text-[12px] font-bold">
+                                        <span className="flex items-center gap-1">심도 <span className="text-blue-500">{l.depth}cm</span></span>
+                                        <span className="flex items-center gap-1">온도 <span className="text-blue-500">{l.temp}°C</span></span>
+                                        <span className="flex items-center gap-1">습도 <span className="text-blue-500">{l.humidity}%</span></span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="text-right">
+                                    <div className="flex items-baseline gap-0.5">
+                                      <span className="text-blue-500 font-black text-2xl tracking-tighter">{l.weight}</span>
+                                      <span className="text-[10px] font-black text-gray-400 uppercase">kg</span>
+                                    </div>
+                                    <p className="text-[10px] text-gray-500 font-bold mt-1 tracking-widest">{l.time}</p>
+                                  </div>
+                                </motion.div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
+                </div>
+              </motion.div>
+            )}
+
             {activeTab === 'map' && (
               <motion.div
                 key="map"
@@ -594,6 +808,7 @@ export default function App() {
                 onClick={() => {
                   setIsInputModalOpen(false);
                   setEditingRecord(null);
+                  setForcedCategory(undefined);
                 }}
                 className={`absolute top-6 right-6 p-2 rounded-full z-10 transition-colors ${isDarkMode ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
               >
@@ -608,6 +823,8 @@ export default function App() {
                 availableWeeks={availableWeeks}
                 initialStoreName={targetStore} 
                 editRecord={editingRecord}
+                forceCategory={forcedCategory}
+                ranches={RANCHES}
                 onSuccess={(year, month, storeName, weight, date, time) => {
                   const newSubmissions = {
                     ...submissionsRef.current,
@@ -618,6 +835,7 @@ export default function App() {
                   
                   setIsInputModalOpen(false);
                   setEditingRecord(null);
+                  setForcedCategory(undefined);
                   setIsSuccessModalOpen(true);
                   syncWithSupabase(selectedYear, selectedMonth, selectedWeek);
                 }} 

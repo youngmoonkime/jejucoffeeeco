@@ -4,18 +4,11 @@ import { motion } from 'motion/react';
 
 interface NextDestinationProps {
   location: any;
-  onRecordClick: (storeName?: string) => void;
+  onRecordClick: (storeName?: string, forceCategory?: string) => void;
   isDarkMode: boolean;
 }
 
 export default function NextDestination({ location, onRecordClick, isDarkMode }: NextDestinationProps) {
-  // Mock data for history chart
-  const historyData = [
-    { name: '3주전', weight: 3.8 },
-    { name: '2주전', weight: 4.5 },
-    { name: '지난주', weight: 4.1 },
-  ];
-
   if (!location) {
     return (
       <motion.div 
@@ -28,9 +21,17 @@ export default function NextDestination({ location, onRecordClick, isDarkMode }:
         </div>
         <h2 className={`text-2xl md:text-3xl font-extrabold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>모든 수거 완료!</h2>
         <p className={`text-sm md:text-base ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>오늘 예정된 모든 매장의 수거가 완료되었습니다.</p>
+        <p className={`mt-4 text-xs font-bold ${isDarkMode ? 'text-emerald-500/60' : 'text-emerald-600/60'}`}>최종 목장 작업은 좌측 서비스 메뉴의 '제주우유' 탭에서 진행해주세요.</p>
       </motion.div>
     );
   }
+
+  // 실제 데이터 기반 이력 (history prop이 없을 경우 mock 데이터 유지)
+  const historyData = location.history || [
+    { name: '1주차', weight: 0 },
+    { name: '2주차', weight: 0 },
+    { name: '3주차', weight: 0 },
+  ];
 
   return (
       <div className={`glass rounded-[32px] p-6 md:p-8 relative overflow-hidden group h-full flex flex-col shadow-2xl shadow-emerald-500/5`}>
@@ -78,40 +79,73 @@ export default function NextDestination({ location, onRecordClick, isDarkMode }:
                     <span className="text-xs font-bold uppercase tracking-wider">특이사항 / 메모</span>
                   </div>
                   <div className={`text-sm leading-relaxed space-y-1 font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                    <div className="flex items-center gap-2">• <span className={`${isDarkMode ? 'text-gray-300' : 'opacity-80'}`}>후문 주차장 이용 가능</span></div>
-                    <div className="flex items-center gap-2">• <span className={`${isDarkMode ? 'text-gray-300' : 'opacity-80'}`}>도착 5분 전 연락 요망</span></div>
-                    <div className="flex items-center gap-2">• <span className={`${isDarkMode ? 'text-gray-300' : 'opacity-80'}`}>담당: 김매니저 (010-1234-5678)</span></div>
+                    {location.note ? (
+                      location.note.split('\n').map((line: string, idx: number) => (
+                        <div key={idx} className="flex items-start gap-2">• <span>{line}</span></div>
+                      ))
+                    ) : (
+                      <div className="flex items-center gap-2">• <span className="opacity-50">등록된 특이사항이 없습니다.</span></div>
+                    )}
                   </div>
                </div>
             </div>
 
-            {/* Right: History Chart */}
-            <div className={`p-5 rounded-3xl border flex flex-col transition-all ${isDarkMode ? 'bg-white/[0.03] border-white/10' : 'bg-gray-50 border-gray-100 hover:bg-white'}`}>
-              <div className={`flex items-center gap-2 mb-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-400'}`}>
-                <History size={16} className="text-emerald-500" />
-                <span className="text-xs font-bold uppercase tracking-wider">최근 수거 이력</span>
+            {/* Right: Last Week Record & Graph */}
+            <div className={`p-5 rounded-3xl border flex flex-col justify-between transition-all ${isDarkMode ? 'bg-emerald-500/[0.03] border-emerald-500/20' : 'bg-emerald-50/30 border-emerald-100/50 hover:bg-emerald-50'}`}>
+              <div className="flex items-center justify-between mb-2">
+                <div className={`flex items-center gap-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-400'}`}>
+                  <History size={16} className="text-emerald-500" />
+                  <span className="text-xs font-bold uppercase tracking-wider">전 주차 수거 기록</span>
+                </div>
               </div>
-              <div className="flex-1 min-h-[120px]">
+              
+              <div className="flex items-end justify-between mb-4">
+                <div className="flex items-baseline gap-1">
+                  <span className={`text-4xl font-black tracking-tighter ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                    {location.lastWeekWeight || 0}
+                  </span>
+                  <span className={`text-lg font-bold ${isDarkMode ? 'text-emerald-500' : 'text-emerald-600'}`}>kg</span>
+                </div>
+                <div className="text-right">
+                  <p className={`text-[10px] font-bold uppercase mb-0.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>지난주 대비</p>
+                  <span className={`text-sm font-black flex items-center justify-end gap-1 ${location.currentWeight > location.lastWeekWeight ? 'text-emerald-500' : 'text-rose-500'}`}>
+                    {location.currentWeight > location.lastWeekWeight ? '↑' : '↓'} {Math.abs(location.currentWeight - location.lastWeekWeight).toFixed(1)} <span className="text-[10px] font-bold">kg</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* Enhanced History Graph */}
+              <div className="flex-1 min-h-[120px] mb-2">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={historyData}>
+                  <AreaChart data={historyData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorWeight" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#059669" stopOpacity={0.3}/>
                         <stop offset="95%" stopColor="#059669" stopOpacity={0}/>
                       </linearGradient>
                     </defs>
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 11, fill: '#9CA3AF', fontWeight: 600}} />
-                    <Tooltip 
-                      contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', backgroundColor: isDarkMode ? '#1C1C1E' : '#fff'}}
-                      itemStyle={{color: '#059669', fontWeight: '800'}}
+                    <XAxis 
+                      dataKey="name" 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fontSize: 10, fill: isDarkMode ? '#6B7280' : '#9CA3AF', fontWeight: 600 }}
+                      dy={10}
                     />
-                    <Area type="monotone" dataKey="weight" stroke="#059669" strokeWidth={4} fillOpacity={1} fill="url(#colorWeight)" />
+                    <Tooltip 
+                      contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 8px 16px rgba(0,0,0,0.1)', backgroundColor: isDarkMode ? '#1C1C1E' : '#fff', fontSize: '12px'}}
+                      itemStyle={{color: '#059669', fontWeight: '800'}}
+                      cursor={{ stroke: '#059669', strokeWidth: 1, strokeDasharray: '4 4' }}
+                    />
+                    <Area type="monotone" dataKey="weight" stroke="#059669" strokeWidth={3} fillOpacity={1} fill="url(#colorWeight)" dot={{ r: 3, fill: '#059669', strokeWidth: 2, stroke: isDarkMode ? '#111827' : '#fff' }} activeDot={{ r: 5, strokeWidth: 0 }} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
-              <div className="mt-2 text-right">
-                <span className={`text-xs font-bold ${isDarkMode ? 'text-gray-400' : 'text-gray-400'}`}>지난주 평균: </span>
-                <span className={`text-sm font-black ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>4.1 kg</span>
+
+              <div className="pt-3 border-t border-emerald-500/10 flex justify-between items-center bg-white/5 dark:bg-transparent -mx-5 px-5 py-2 mt-2">
+                <span className={`text-[10px] font-bold ${isDarkMode ? 'text-gray-500' : 'text-gray-400'} uppercase tracking-widest`}>이번달 누적 수거량</span>
+                <span className={`text-sm font-black ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                  {location.total || 0} kg
+                </span>
               </div>
             </div>
           </div>
