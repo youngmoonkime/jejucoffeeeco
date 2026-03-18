@@ -25,7 +25,7 @@ export default function LogisticsView({ logs, searchTerm, setSearchTerm, onEdit,
   }, [availableWeeks, selectedWeek]);
   
   const displayedLogs = useMemo(() => { 
-    return logs.filter(l => (l.weekLabel || l.date) === selectedWeek && l.storeName.toLowerCase().includes(searchTerm.toLowerCase())).sort((a, b) => a.seq - b.seq); 
+    return logs.filter(l => (l.weekLabel || l.date) === selectedWeek && l.category !== '목장 데이터' && l.category !== '목장데이터' && l.storeName !== '다원목장' && l.storeName.toLowerCase().includes(searchTerm.toLowerCase())).sort((a, b) => a.seq - b.seq); 
   }, [logs, selectedWeek, searchTerm]);
   
   return (
@@ -122,6 +122,12 @@ export default function LogisticsView({ logs, searchTerm, setSearchTerm, onEdit,
                           </>
                         )}
                       </div>
+                      {l.memo && l.memo.trim() !== '' && (
+                        <div className={`mt-2.5 text-[12px] p-2.5 rounded-xl border flex gap-2 items-start ${isDarkMode ? 'bg-white/5 border-white/5' : 'bg-gray-50 border-gray-100'}`}>
+                          <span className="text-[10px] font-black text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded uppercase mt-0.5 shrink-0 tracking-widest">메모</span>
+                          <span className={`font-medium leading-snug ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{l.memo}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-4">

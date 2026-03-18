@@ -77,8 +77,8 @@ export default function AnalysisView({ locations, weeklyTotals, availableYears, 
           </div>
           <span className="tracking-tight">{selectedMonth} 주간 수거 통계</span>
         </h3>
-        <div className="h-[300px] md:h-[400px]">
-          <ResponsiveContainer width="100%" height="100%">
+        <div>
+          <ResponsiveContainer width="100%" height={400}>
             <AreaChart data={weeklyTotals}>
               <defs>
                 <linearGradient id="appleGrad" x1="0" y1="0" x2="0" y2="1">

@@ -106,17 +106,11 @@ export default function NextDestination({ location, onRecordClick, isDarkMode }:
                   </span>
                   <span className={`text-lg font-bold ${isDarkMode ? 'text-emerald-500' : 'text-emerald-600'}`}>kg</span>
                 </div>
-                <div className="text-right">
-                  <p className={`text-[10px] font-bold uppercase mb-0.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>지난주 대비</p>
-                  <span className={`text-sm font-black flex items-center justify-end gap-1 ${location.currentWeight > location.lastWeekWeight ? 'text-emerald-500' : 'text-rose-500'}`}>
-                    {location.currentWeight > location.lastWeekWeight ? '↑' : '↓'} {Math.abs(location.currentWeight - location.lastWeekWeight).toFixed(1)} <span className="text-[10px] font-bold">kg</span>
-                  </span>
-                </div>
               </div>
 
               {/* Enhanced History Graph */}
-              <div className="flex-1 min-h-[120px] mb-2">
-                <ResponsiveContainer width="100%" height="100%">
+              <div className="flex-1 w-full min-h-[120px] mb-2" style={{ minWidth: 0, minHeight: 120 }}>
+                <ResponsiveContainer width="100%" height={120}>
                   <AreaChart data={historyData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorWeight" x1="0" y1="0" x2="0" y2="1">

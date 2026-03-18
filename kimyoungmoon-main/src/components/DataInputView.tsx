@@ -15,19 +15,21 @@ interface DataInputViewProps {
   availableMonths: string[];
   selectedMonth: string;
   availableWeeks: string[];
+  selectedWeek?: string; // Add selectedWeek prop
   initialStoreName?: string;
   editRecord?: any; 
   forceCategory?: string; // Add forceCategory prop
-  onSuccess: (year: string, month: string, storeName: string, weight: number, date: string, time: string) => void;
+  onSuccess: (year: string, month: string, week: string, storeName: string, weight: number, date: string, time: string) => void;
   isDarkMode: boolean;
   ranches?: Location[];
+  logs?: any[];
 }
 
-export default function DataInputView({ locations, availableYears, selectedYear, availableMonths, selectedMonth, availableWeeks, initialStoreName, editRecord, forceCategory, onSuccess, isDarkMode, ranches = [] }: DataInputViewProps) {
+export default function DataInputView({ locations, availableYears, selectedYear, availableMonths, selectedMonth, availableWeeks, selectedWeek, initialStoreName, editRecord, forceCategory, onSuccess, isDarkMode, ranches = [], logs = [] }: DataInputViewProps) {
   const [inputData, setInputData] = useState({ 
     year: editRecord?.year || selectedYear || '', 
     month: editRecord?.month || selectedMonth || '', 
-    week: editRecord?.week || availableWeeks[0] || '', 
+    week: editRecord?.week || editRecord?.weekLabel || selectedWeek || availableWeeks[0] || '', 
     storeName: editRecord?.storeName || initialStoreName || '', 
     weight: editRecord?.weight?.toString() || '',
     date: editRecord?.date || new Date().toISOString().split('T')[0],
@@ -47,6 +49,30 @@ export default function DataInputView({ locations, availableYears, selectedYear,
   useEffect(() => { if (availableWeeks.length > 0 && !inputData.week) setInputData(d => ({...d, week: availableWeeks[0]})); }, [availableWeeks]);
   useEffect(() => { if (initialStoreName && !editRecord) setInputData(d => ({...d, storeName: initialStoreName})); }, [initialStoreName, editRecord]);
   useEffect(() => { if (forceCategory) setInputData(d => ({...d, category: forceCategory})); }, [forceCategory]);
+
+  // 목장 데이터 자동 불러오기 (선택된 농가 및 주차가 기존 로그 데이터에 있다면 값 채우기)
+  useEffect(() => {
+    if (inputData.category === '목장 데이터' && inputData.storeName && inputData.week) {
+      if (editRecord) return; // 명시적인 기록 수정 상태면 스킵
+      
+      const match = logs.find(l => 
+        l.category === '목장 데이터' && 
+        l.storeName === inputData.storeName && 
+        (l.weekLabel === inputData.week || l.weekLabel === inputData.week.replace('주차', '')) 
+      );
+      
+      if (match) {
+        setInputData(prev => ({
+          ...prev,
+          depth: match.depth !== undefined ? match.depth.toString() : prev.depth,
+          temp: match.temp !== undefined ? match.temp.toString() : prev.temp,
+          humidity: match.humidity !== undefined ? match.humidity.toString() : prev.humidity,
+          memo: match.memo || prev.memo,
+          weight: match.weight !== undefined && match.weight !== '-' ? match.weight.toString() : prev.weight
+        }));
+      }
+    }
+  }, [inputData.storeName, inputData.week, inputData.category, logs, editRecord]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault(); 
@@ -76,15 +102,15 @@ export default function DataInputView({ locations, availableYears, selectedYear,
         headers: { 'Content-Type': 'text/plain' }, 
         body: JSON.stringify({
           ...inputData,
-          weight: parseFloat(inputData.weight)
+          weight: inputData.weight.toString()
         }) 
       });
 
       setTimeout(async () => { 
-        await onSuccess(inputData.year, inputData.month, inputData.storeName, parseFloat(inputData.weight), inputData.date, inputData.time); 
+        await onSuccess(inputData.year, inputData.month, inputData.week, inputData.storeName, parseFloat(inputData.weight), inputData.date, inputData.time); 
         setInputData(p => ({ ...p, weight: '', memo: '', mixture: '', temp: '', workingTime: '', depth: '', humidity: '' })); 
         setIsSubmitting(false); 
-      }, 500);
+      }, 1500); // 500ms -> 1500ms
 
     } catch (error: any) { 
       console.error("저장 실패:", error);
@@ -193,19 +219,27 @@ export default function DataInputView({ locations, availableYears, selectedYear,
           <motion.div 
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
-            className="grid grid-cols-3 gap-4"
+            className="grid grid-cols-2 gap-4"
           >
             <div className="space-y-2">
               <label className="text-[11px] font-black text-[#86868B] uppercase tracking-wider ml-1">심도(cm)</label>
               <input type="number" value={inputData.depth} onChange={e => setInputData({...inputData, depth: e.target.value})} className={`w-full p-4 border-none rounded-2xl font-bold text-sm ${isDarkMode ? 'bg-white/5 text-white' : 'bg-[#F5F5F7] text-gray-900 shadow-inner'}`} placeholder="0" />
             </div>
             <div className="space-y-2">
-              <label className="text-[11px] font-black text-[#86868B] uppercase tracking-wider ml-1">온도(°C)</label>
+              <label className="text-[11px] font-black text-[#86868B] uppercase tracking-wider ml-1">심도 온도(°C)</label>
               <input type="number" step="0.1" value={inputData.temp} onChange={e => setInputData({...inputData, temp: e.target.value})} className={`w-full p-4 border-none rounded-2xl font-bold text-sm ${isDarkMode ? 'bg-white/5 text-white' : 'bg-[#F5F5F7] text-gray-900 shadow-inner'}`} placeholder="0.0" />
             </div>
             <div className="space-y-2">
-              <label className="text-[11px] font-black text-[#86868B] uppercase tracking-wider ml-1">습도(%)</label>
+              <label className="text-[11px] font-black text-[#86868B] uppercase tracking-wider ml-1">외부 온도(°C)</label>
+              <input type="number" step="0.1" value={inputData.workingTime} onChange={e => setInputData({...inputData, workingTime: e.target.value})} className={`w-full p-4 border-none rounded-2xl font-bold text-sm ${isDarkMode ? 'bg-white/5 text-white' : 'bg-[#F5F5F7] text-gray-900 shadow-inner'}`} placeholder="0.0" />
+            </div>
+            <div className="space-y-2">
+              <label className="text-[11px] font-black text-[#86868B] uppercase tracking-wider ml-1">외부 습도(%)</label>
               <input type="number" value={inputData.humidity} onChange={e => setInputData({...inputData, humidity: e.target.value})} className={`w-full p-4 border-none rounded-2xl font-bold text-sm ${isDarkMode ? 'bg-white/5 text-white' : 'bg-[#F5F5F7] text-gray-900 shadow-inner'}`} placeholder="0" />
+            </div>
+            <div className="col-span-2 space-y-2">
+              <label className="text-[11px] font-black text-[#86868B] uppercase tracking-wider ml-1">진행 내용</label>
+              <input type="text" value={inputData.mixture} onChange={e => setInputData({...inputData, mixture: e.target.value})} className={`w-full p-4 border-none rounded-2xl font-bold text-sm ${isDarkMode ? 'bg-white/5 text-white' : 'bg-[#F5F5F7] text-gray-900 shadow-inner'}`} placeholder="제주우유측 진행 내용 입력..." />
             </div>
           </motion.div>
         )}

@@ -3,7 +3,7 @@ export const APPS_SCRIPT_URLS: Record<string, string> = {
   "2025":
     "https://script.google.com/macros/s/AKfycbyK85yXiY0oMkMzbqFrUPSbFYJOttvZsqePJ5OPYmdtRaHKgO_bUhxhyDFb8-n0_416/exec", // 2025년 데이터 URL (사용자 입력 필요)
   "2026":
-    "https://script.google.com/macros/s/AKfycbx3CIMOKJF_XreMA78tbVfdb0zQlFnX6oyxFK9ZTbiHovBCvwDpBM7DmNBXQSWz3WQp/exec",
+    "https://script.google.com/macros/s/AKfycbw5Ecxd9g3-GQQbuyM-FtbrswT0A5zQLgCV5E2jXg9SVyLOvXuJvtcZq8bGmy8r7Nx4/exec",
 };
 
 export const JEJU_COORDS: Record<string, { lat: number; lng: number }> = {

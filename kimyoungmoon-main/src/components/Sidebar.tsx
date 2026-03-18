@@ -1,4 +1,4 @@
-import { RefreshCw, Map as MapIcon, BarChart3, MapPin, Truck, Settings, LayoutDashboard, PenTool, LogOut, Brain, Milk } from 'lucide-react';
+import { RefreshCw, Map as MapIcon, BarChart3, MapPin, Truck, Settings, LayoutDashboard, PenTool, LogOut, Milk, ClipboardList } from 'lucide-react';
 import { motion } from 'motion/react';
 
 interface SidebarProps {
@@ -41,12 +41,11 @@ export default function Sidebar({ activeTab, setActiveTab, isDarkMode, isOpen, o
           {/* Navigation Links */}
         <nav className="flex-1 flex flex-col gap-4 w-full px-4">
           {[
-            { id: 'home', icon: LayoutDashboard, label: '홈' },
-            { id: 'analysis', icon: BarChart3, label: '분석' },
-            { id: 'ai_insights', icon: Brain, label: 'AI 인사이트' },
-            { id: 'map', icon: MapPin, label: '지도' },
-            { id: 'logistics', icon: Truck, label: '내역' },
-            { id: 'jeju_milk', icon: Milk, label: '제주우유' },
+          { id: 'home', icon: LayoutDashboard, label: '메인 대시보드' },
+            { id: 'logistics', icon: Truck, label: '기록실' },
+            { id: 'analysis', icon: BarChart3, label: '수거 전체량' },
+            { id: 'map', icon: MapPin, label: '수거노선지도' },
+            { id: 'jeju_milk', icon: Milk, label: '목장데이터' },
           ].map((item) => (
             <motion.button 
               key={item.id}
