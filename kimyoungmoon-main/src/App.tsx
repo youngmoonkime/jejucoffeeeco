@@ -435,8 +435,11 @@ export default function App() {
         let weight = 0;
         if (weekInfo) {
           validRows.forEach((row: any[]) => {
-            const rowCategory = (categoryColIndex !== -1 && row[categoryColIndex] !== undefined && row[categoryColIndex] !== null ? String(row[categoryColIndex]) : '') === '제주우유 까대기' ? '목장 데이터' : ((categoryColIndex !== -1 && row[categoryColIndex] !== undefined && row[categoryColIndex] !== null ? String(row[categoryColIndex]) : '커피박 수거') || '커피박 수거');
-            if (rowCategory !== '목장 데이터') {
+            const locName = String(row[nameColIndex]).trim();
+            const rawCategory = categoryColIndex !== -1 && row[categoryColIndex] !== undefined && row[categoryColIndex] !== null ? String(row[categoryColIndex]).trim().replace(/\s/g, '') : '';
+            const isRanchData = locName === '다원목장' || rawCategory === '제주우유까대기' || rawCategory === '목장데이터';
+
+            if (!isRanchData) {
               const val = row[weekInfo.idx];
               if (val !== undefined && val !== null && val !== "" && !isNaN(parseFloat(val))) {
                 weight += parseFloat(val);
@@ -697,7 +700,7 @@ export default function App() {
                 transition={{ duration: 0.4 }}
               >
                 <AnalysisView 
-                  locations={locations} 
+                  locations={cafeLocations} 
                   weeklyTotals={weeklyTotals} 
                   availableYears={availableYears}
                   selectedYear={selectedYear}
