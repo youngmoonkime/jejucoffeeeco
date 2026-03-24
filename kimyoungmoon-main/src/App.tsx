@@ -749,7 +749,7 @@ export default function App() {
                   <div className="w-full mb-8">
                     <div className={`p-6 rounded-[32px] border ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-blue-50/50 border-blue-100 shadow-sm'}`}>
                       <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1.5">진행 상태</p>
-                      <p className={`text-xl font-black text-blue-600`}>{ranchLogs.length > 0 ? `기록 진행 중 (${ranchLogs.length}주차 완료)` : '기록 대기 중'}</p>
+                      <p className={`text-xl font-black text-blue-600`}>{ranchLogs.length > 0 ? `기록 진행 중 (${ranchLogs.length}건 완료)` : '기록 대기 중'}</p>
                     </div>
                   </div>
 
