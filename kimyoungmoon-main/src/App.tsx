@@ -27,7 +27,14 @@ const parseSheetData = (result: any, currentRequestMonth: string) => {
 };
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('home');
+  const [activeTab, setActiveTab] = useState(() => {
+    return localStorage.getItem('jejueco_activeTab') || 'home';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('jejueco_activeTab', activeTab);
+  }, [activeTab]);
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); 
   const [isDesktopSidebarCollapsed, setIsDesktopSidebarCollapsed] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(false);
