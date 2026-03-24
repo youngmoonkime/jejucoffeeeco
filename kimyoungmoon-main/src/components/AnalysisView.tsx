@@ -19,6 +19,13 @@ interface AnalysisViewProps {
 export default function AnalysisView({ locations, weeklyTotals, availableYears, selectedYear, availableMonths, selectedMonth, syncWithGoogleSheet, isDarkMode }: AnalysisViewProps) {
   const total = locations.reduce((s, l) => s + l.total, 0);
   
+  const weights = locations.map(l => l.total).sort((a, b) => a - b);
+  let median = 0;
+  if (weights.length > 0) {
+    const mid = Math.floor(weights.length / 2);
+    median = weights.length % 2 !== 0 ? weights[mid] : (weights[mid - 1] + weights[mid]) / 2;
+  }
+  
   return (
     <div className="max-w-[1400px] mx-auto space-y-8 md:space-y-10">
       <motion.div 
@@ -43,8 +50,8 @@ export default function AnalysisView({ locations, weeklyTotals, availableYears, 
         {[
           {title:'수거량', val:total.toLocaleString(), c:'text-[#059669]', unit: 'kg', icon: TrendingUp},
           {title:'매장', val:locations.length, c:'text-[#F59E0B]', unit: '곳', icon: Users},
-          {title:'탄소저감', val:(total*0.51).toFixed(0), c:'text-[#10B981]', unit: 'kg', icon: Leaf},
-          {title:'평균', val:(total/locations.length || 0).toFixed(1), c:'text-[#8B5CF6]', unit: 'kg', icon: Calculator}
+          {title:'탄소저감', val:(total*0.338).toFixed(0), c:'text-[#10B981]', unit: 'kg', icon: Leaf, tooltip: '커피박 1톤 소각 시 338kg CO2 발생 기준'},
+          {title:'중앙값', val:median.toFixed(1), c:'text-[#8B5CF6]', unit: 'kg', icon: Calculator, tooltip: '극단값을 제외한 일반적인 매장의 수거량 기준'}
         ].map((s,i) => (
           <motion.div 
             key={i} 
@@ -53,6 +60,7 @@ export default function AnalysisView({ locations, weeklyTotals, availableYears, 
             transition={{ delay: i * 0.1 }}
             whileHover={{ y: -5 }}
             className={`p-6 md:p-7 rounded-[32px] border shadow-xl glass group`}
+            title={s.tooltip}
           >
             <div className="flex justify-between items-start mb-4">
               <p className={`text-[13px] font-black uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-[#8E8E93]'}`}>{s.title}</p>
