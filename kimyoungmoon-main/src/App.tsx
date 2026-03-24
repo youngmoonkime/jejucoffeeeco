@@ -559,50 +559,52 @@ export default function App() {
               </button>
               
               <div>
-                <p className={`text-base font-medium flex items-center gap-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                  <select 
-                    value={selectedYear}
-                    onChange={(e) => {
-                      const newYear = e.target.value;
-                      setSelectedYear(newYear);
-                      let nextMonth = selectedMonth;
-                      if (newYear === '2025' && ['1월', '2월', '3월'].includes(selectedMonth)) {
-                        nextMonth = '4월';
-                        setSelectedMonth('4월');
-                      }
-                      syncWithSupabase(newYear, nextMonth, selectedWeek);
-                    }}
-                    className={`bg-transparent border-none font-bold focus:ring-0 cursor-pointer ${isDarkMode ? 'text-white' : 'text-gray-900'}`}
-                  >
-                    {availableYears.map(y => <option key={y} value={y}>{y}년</option>)}
-                  </select>
-                  <select 
-                    value={selectedMonth}
-                    onChange={(e) => {
-                      const newMonth = e.target.value;
-                      setSelectedMonth(newMonth);
-                      isFirstLoad.current = true; // 월 변경 시에도 최적 주차 자동 선택 활성화
-                      syncWithSupabase(selectedYear, newMonth, selectedWeek);
-                    }}
-                    className={`bg-transparent border-none font-bold focus:ring-0 cursor-pointer ${isDarkMode ? 'text-white' : 'text-gray-900'}`}
-                  >
-                    {availableMonths.map(m => <option key={m} value={m}>{m}</option>)}
-                  </select>
-                  {activeTab !== 'analysis' && (
+                {activeTab !== 'jeju_milk' && (
+                  <p className={`text-base font-medium flex items-center gap-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                     <select 
-                      value={selectedWeek}
+                      value={selectedYear}
                       onChange={(e) => {
-                        const newWeek = e.target.value;
-                        setSelectedWeek(newWeek);
-                        syncWithSupabase(selectedYear, selectedMonth, newWeek);
+                        const newYear = e.target.value;
+                        setSelectedYear(newYear);
+                        let nextMonth = selectedMonth;
+                        if (newYear === '2025' && ['1월', '2월', '3월'].includes(selectedMonth)) {
+                          nextMonth = '4월';
+                          setSelectedMonth('4월');
+                        }
+                        syncWithSupabase(newYear, nextMonth, selectedWeek);
                       }}
                       className={`bg-transparent border-none font-bold focus:ring-0 cursor-pointer ${isDarkMode ? 'text-white' : 'text-gray-900'}`}
                     >
-                      {availableWeeks.map(w => <option key={w} value={w}>{w}</option>)}
+                      {availableYears.map(y => <option key={y} value={y}>{y}년</option>)}
                     </select>
-                  )}
-                  {lastSyncTime && <span className="text-xs opacity-70 hidden sm:inline">({lastSyncTime} 업데이트)</span>}
-                </p>
+                    <select 
+                      value={selectedMonth}
+                      onChange={(e) => {
+                        const newMonth = e.target.value;
+                        setSelectedMonth(newMonth);
+                        isFirstLoad.current = true; // 월 변경 시에도 최적 주차 자동 선택 활성화
+                        syncWithSupabase(selectedYear, newMonth, selectedWeek);
+                      }}
+                      className={`bg-transparent border-none font-bold focus:ring-0 cursor-pointer ${isDarkMode ? 'text-white' : 'text-gray-900'}`}
+                    >
+                      {availableMonths.map(m => <option key={m} value={m}>{m}</option>)}
+                    </select>
+                    {activeTab !== 'analysis' && (
+                      <select 
+                        value={selectedWeek}
+                        onChange={(e) => {
+                          const newWeek = e.target.value;
+                          setSelectedWeek(newWeek);
+                          syncWithSupabase(selectedYear, selectedMonth, newWeek);
+                        }}
+                        className={`bg-transparent border-none font-bold focus:ring-0 cursor-pointer ${isDarkMode ? 'text-white' : 'text-gray-900'}`}
+                      >
+                        {availableWeeks.map(w => <option key={w} value={w}>{w}</option>)}
+                      </select>
+                    )}
+                    {lastSyncTime && <span className="text-xs opacity-70 hidden sm:inline">({lastSyncTime} 업데이트)</span>}
+                  </p>
+                )}
               </div>
             </div>
 
