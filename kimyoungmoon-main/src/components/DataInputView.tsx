@@ -6,6 +6,7 @@ import { APPS_SCRIPT_URLS } from '../utils/constants';
 interface Location {
   id: number;
   name: string;
+  note?: string;
 }
 
 interface DataInputViewProps {
@@ -40,7 +41,8 @@ export default function DataInputView({ locations, availableYears, selectedYear,
     temp: editRecord?.temp || '',
     workingTime: editRecord?.workingTime || '',
     depth: editRecord?.depth || '',
-    humidity: editRecord?.humidity || ''
+    humidity: editRecord?.humidity || '',
+    moisture: editRecord?.moisture || ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -49,6 +51,15 @@ export default function DataInputView({ locations, availableYears, selectedYear,
   useEffect(() => { if (availableWeeks.length > 0 && !inputData.week) setInputData(d => ({...d, week: availableWeeks[0]})); }, [availableWeeks]);
   useEffect(() => { if (initialStoreName && !editRecord) setInputData(d => ({...d, storeName: initialStoreName})); }, [initialStoreName, editRecord]);
   useEffect(() => { if (forceCategory) setInputData(d => ({...d, category: forceCategory})); }, [forceCategory]);
+
+  // 매장 선택 시 비고(특이사항) 자동 동기화
+  useEffect(() => {
+    if (editRecord || inputData.category === '목장 데이터') return;
+    const matched = locations.find(l => l.name === inputData.storeName);
+    if (matched?.note) {
+      setInputData(d => ({ ...d, memo: matched.note! }));
+    }
+  }, [inputData.storeName]);
 
   // 목장 데이터 자동 불러오기 (선택된 농가 및 주차가 기존 로그 데이터에 있다면 값 채우기)
   useEffect(() => {
@@ -108,7 +119,7 @@ export default function DataInputView({ locations, availableYears, selectedYear,
 
       setTimeout(async () => { 
         await onSuccess(inputData.year, inputData.month, inputData.week, inputData.storeName, parseFloat(inputData.weight), inputData.date, inputData.time); 
-        setInputData(p => ({ ...p, weight: '', memo: '', mixture: '', temp: '', workingTime: '', depth: '', humidity: '' })); 
+        setInputData(p => ({ ...p, weight: '', memo: '', mixture: '', temp: '', workingTime: '', depth: '', humidity: '', moisture: '' }));
         setIsSubmitting(false); 
       }, 1500); // 500ms -> 1500ms
 
@@ -236,6 +247,10 @@ export default function DataInputView({ locations, availableYears, selectedYear,
             <div className="space-y-2">
               <label className="text-[11px] font-black text-[#86868B] uppercase tracking-wider ml-1">외부 습도(%)</label>
               <input type="number" value={inputData.humidity} onChange={e => setInputData({...inputData, humidity: e.target.value})} className={`w-full p-4 border-none rounded-2xl font-bold text-sm ${isDarkMode ? 'bg-white/5 text-white' : 'bg-[#F5F5F7] text-gray-900 shadow-inner'}`} placeholder="0" />
+            </div>
+            <div className="space-y-2">
+              <label className="text-[11px] font-black text-[#86868B] uppercase tracking-wider ml-1">함수율(%)</label>
+              <input type="number" step="0.1" value={inputData.moisture} onChange={e => setInputData({...inputData, moisture: e.target.value})} className={`w-full p-4 border-none rounded-2xl font-bold text-sm ${isDarkMode ? 'bg-white/5 text-white' : 'bg-[#F5F5F7] text-gray-900 shadow-inner'}`} placeholder="0.0" />
             </div>
             <div className="col-span-2 space-y-2">
               <label className="text-[11px] font-black text-[#86868B] uppercase tracking-wider ml-1">진행 내용</label>

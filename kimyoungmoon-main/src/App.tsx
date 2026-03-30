@@ -180,6 +180,8 @@ export default function App() {
         const s = String(cell).toLowerCase().replace(/\s/g, '');
         return s.includes('비고') || s.includes('메모') || s.includes('특이사항') || s.includes('note') || s.includes('memo');
       });
+      const joinDateColIndex = headerRow.findIndex((cell: any) => String(cell).trim() === '참여일');
+      const leaveDateColIndex = headerRow.findIndex((cell: any) => String(cell).trim() === '탈퇴일');
       
       const categoryColIndex = headerRow.findIndex((cell: any) => {
         const s = String(cell).toLowerCase().replace(/\s/g, '');
@@ -200,6 +202,7 @@ export default function App() {
       });
       const depthColIndex = headerRow.findIndex((cell: any) => String(cell).includes('심도') || String(cell).includes('높이'));
       const humidityColIndex = headerRow.findIndex((cell: any) => String(cell).includes('외부습도') || String(cell).includes('습도'));
+      const moistureColIndex = headerRow.findIndex((cell: any) => String(cell).includes('함수율'));
 
       const validRows = data.filter((row: any[]) => row[0] && !isNaN(Number(row[0])) && row[nameColIndex] && !String(row[nameColIndex]).includes('총계'));
 
@@ -305,6 +308,11 @@ export default function App() {
           }
         });
 
+        // 대기중(pending) 매장도 비고 컬럼 값을 표시
+        if (note === '' && memoColIndex !== -1 && row[memoColIndex] != null && String(row[memoColIndex]).trim() !== '') {
+          note = String(row[memoColIndex]).trim();
+        }
+
         return {
           id: locId,
           name: locName,
@@ -328,7 +336,9 @@ export default function App() {
           depth: depthColIndex !== -1 && row[depthColIndex] !== undefined && row[depthColIndex] !== null ? String(row[depthColIndex]) : '',
           humidity: humidityColIndex !== -1 && row[humidityColIndex] !== undefined && row[humidityColIndex] !== null ? String(row[humidityColIndex]) : '',
           history: historyToShow.length > 0 ? historyToShow : [{name: '데이터 없음', weight: 0}, {name: '데이터 없음', weight: 0}],
-          lastWeekWeight
+          lastWeekWeight,
+          joinDate: joinDateColIndex !== -1 && row[joinDateColIndex] != null ? String(row[joinDateColIndex]).trim() : '',
+          leaveDate: leaveDateColIndex !== -1 && row[leaveDateColIndex] != null ? String(row[leaveDateColIndex]).trim() : ''
         };
       });
 
@@ -479,6 +489,7 @@ export default function App() {
           temp: tempColIndex !== -1 && ranchRow[tempColIndex] !== undefined ? String(ranchRow[tempColIndex]) : '',
           humidity: humidityColIndex !== -1 && ranchRow[humidityColIndex] !== undefined ? String(ranchRow[humidityColIndex]) : '',
           workingTime: workingTimeColIndex !== -1 && ranchRow[workingTimeColIndex] !== undefined ? String(ranchRow[workingTimeColIndex]) : '',
+          moisture: moistureColIndex !== -1 && ranchRow[moistureColIndex] !== undefined ? String(ranchRow[moistureColIndex]) : '',
           mixture: mixtureColIndex !== -1 && ranchRow[mixtureColIndex] !== undefined ? String(ranchRow[mixtureColIndex]) : '',
           memo: memoColIndex !== -1 && ranchRow[memoColIndex] !== undefined ? String(ranchRow[memoColIndex]) : '',
         };
@@ -490,7 +501,7 @@ export default function App() {
           date: dateColIndex !== -1 && ranchRow[dateColIndex] ? String(ranchRow[dateColIndex]) : fw.label,
           time: timeColIndex !== -1 && ranchRow[timeColIndex] ? String(ranchRow[timeColIndex]) : '기록됨',
           // 상세 필드는 마지막 주차에만 첨부
-          ...(i === filledWeeks.length - 1 ? detailFields : { depth: '', temp: '', humidity: '', workingTime: '', mixture: '', memo: '' }),
+          ...(i === filledWeeks.length - 1 ? detailFields : { depth: '', temp: '', humidity: '', workingTime: '', moisture: '', mixture: '', memo: '' }),
         }));
         setRanchLogs(tempRanchLogs);
       } else {
@@ -559,7 +570,7 @@ export default function App() {
               </button>
               
               <div>
-                {activeTab !== 'jeju_milk' && (
+                {activeTab !== 'logistics' && (
                   <p className={`text-base font-medium flex items-center gap-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                     <select 
                       value={selectedYear}
@@ -820,6 +831,10 @@ export default function App() {
                               {l.humidity && <div className="flex items-center gap-2">
                                 <span className={`text-[11px] font-black uppercase tracking-wider ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>외부습도</span>
                                 <span className={`text-[14px] font-black text-blue-500`}>{l.humidity}<span className="text-[10px] ml-0.5">%</span></span>
+                              </div>}
+                              {l.moisture && <div className="flex items-center gap-2">
+                                <span className={`text-[11px] font-black uppercase tracking-wider ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>함수율</span>
+                                <span className={`text-[14px] font-black text-blue-500`}>{l.moisture}<span className="text-[10px] ml-0.5">%</span></span>
                               </div>}
                               {l.mixture && <div className="col-span-2 flex items-start gap-2">
                                 <span className={`text-[11px] font-black uppercase tracking-wider mt-0.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>진행내용</span>

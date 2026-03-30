@@ -47,10 +47,22 @@ export default function NextDestination({ location, onRecordClick, isDarkMode }:
 
           <div className="mb-6">
             <h2 className={`text-3xl md:text-4xl font-black mb-2 leading-tight tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{location.name}</h2>
-            <p className={`text-sm md:text-base flex items-center gap-2 font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              <MapPin className="w-4 h-4 text-emerald-500 shrink-0" />
-              제주시 지역
-            </p>
+            <div className="flex items-center gap-3 flex-wrap">
+              <p className={`text-sm md:text-base flex items-center gap-2 font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                <MapPin className="w-4 h-4 text-emerald-500 shrink-0" />
+                제주시 지역
+              </p>
+              {location.joinDate && (
+                <span className="text-xs font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                  참여일 {location.joinDate}
+                </span>
+              )}
+              {location.leaveDate && (
+                <span className="text-xs font-bold text-red-400 bg-red-400/10 px-2 py-0.5 rounded-full">
+                  탈퇴일 {location.leaveDate}
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Grid Layout for Tablet/Desktop */}

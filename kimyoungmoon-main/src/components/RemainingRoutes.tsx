@@ -26,7 +26,16 @@ export default function RemainingRoutes({ routes, isDarkMode }: RemainingRoutesP
                 </div>
                 <div>
                   <h4 className={`font-bold text-lg ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{route.name}</h4>
-                  <p className="text-sm text-gray-400">예상 수거 대기중</p>
+                  <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                    {route.joinDate ? (
+                      <span className="text-xs text-emerald-500 font-semibold">참여일 {route.joinDate}</span>
+                    ) : (
+                      <span className="text-sm text-gray-400">예상 수거 대기중</span>
+                    )}
+                    {route.leaveDate && (
+                      <span className="text-xs text-red-400 font-semibold">· 탈퇴일 {route.leaveDate}</span>
+                    )}
+                  </div>
                 </div>
               </div>
               <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-[#059669] transition-colors" />
