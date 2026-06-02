@@ -6,6 +6,9 @@
     "build": "npm run build --prefix kimyoungmoon-main",
     "preview": "npm run preview --prefix kimyoungmoon-main",
     "install-all": "npm install --prefix kimyoungmoon-main",
+    "dev:eunpyeong": "npm run dev --prefix eunpyeong-coffee",
+    "build:eunpyeong": "npm run build --prefix eunpyeong-coffee",
+    "install:eunpyeong": "npm install --prefix eunpyeong-coffee",
     "deploy": "git push origin main"
   },
   "dependencies": {
