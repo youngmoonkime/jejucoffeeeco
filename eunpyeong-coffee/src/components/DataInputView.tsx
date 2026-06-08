@@ -33,8 +33,19 @@ export default function DataInputView({ locations, availableYears, selectedYear,
     week: editRecord?.week || editRecord?.weekLabel || selectedWeek || availableWeeks[0] || '', 
     storeName: editRecord?.storeName || initialStoreName || '', 
     weight: editRecord?.weight?.toString() || '',
-    date: editRecord?.date || new Date().toISOString().split('T')[0],
-    time: editRecord?.time || new Date().toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' }),
+    date: editRecord?.date || (() => {
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    })(),
+    time: editRecord?.time || (() => {
+      const d = new Date();
+      const h = String(d.getHours()).padStart(2, '0');
+      const min = String(d.getMinutes()).padStart(2, '0');
+      return `${h}:${min}`;
+    })(),
     category: editRecord?.category || forceCategory || '커피박 수거',
     memo: editRecord?.memo || '',
     mixture: editRecord?.mixture || '',
