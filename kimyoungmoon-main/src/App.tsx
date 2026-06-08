@@ -1,6 +1,6 @@
 // Jeju Coffee eCommerce Logistics Dashboard - Cloudflare Build Trigger
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Menu, Sun, Moon, RefreshCw, CloudRain, Cloud, Check, Download, X, Milk, PenTool, MapPin, PlusCircle, Navigation, Phone } from 'lucide-react';
+import { Menu, Sun, Moon, RefreshCw, CloudRain, Cloud, Check, Download, X, Milk, PenTool, PlusCircle, Navigation, Phone } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import Sidebar from './components/Sidebar';
 import NextDestination from './components/NextDestination';
@@ -10,7 +10,6 @@ import FloatingStatus from './components/FloatingStatus';
 import DataInputView from './components/DataInputView';
 import AnalysisView from './components/AnalysisView';
 import LogisticsView from './components/LogisticsView';
-import MapView from './components/MapView';
 import AIInsightsView from './components/AIInsightsView';
 import { APPS_SCRIPT_URLS, JEJU_COORDS } from './utils/constants';
 
@@ -159,7 +158,14 @@ export default function App() {
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); 
   const [isDesktopSidebarCollapsed, setIsDesktopSidebarCollapsed] = useState(true);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const savedTheme = localStorage.getItem('jeju_darkMode');
+    return savedTheme !== 'false';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('jeju_darkMode', isDarkMode.toString());
+  }, [isDarkMode]);
   
   // 현재 날짜 기준 초기값 설정 (시스템 시간)
   const now = new Date();
@@ -190,6 +196,7 @@ export default function App() {
   const [forecast, setForecast] = useState<any[]>([]);
   const [isInputModalOpen, setIsInputModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [countdown, setCountdown] = useState(3);
   const [editingRecord, setEditingRecord] = useState<any>(null);
   const [forcedCategory, setForcedCategory] = useState<string | undefined>(undefined);
   const isFirstLoad = useRef(true);
@@ -252,6 +259,24 @@ export default function App() {
   };
 
   useEffect(() => { fetchWeather(); }, []);
+
+  // 성공 모달이 열리면 카운트다운 타이머 구동
+  useEffect(() => {
+    if (isSuccessModalOpen) {
+      setCountdown(3);
+      const interval = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            setIsSuccessModalOpen(false);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [isSuccessModalOpen]);
 
   // 2.2 Google Sheet 데이터 동기화 (Supabase 제거)
   const syncWithSupabase = useCallback(async (targetYear = selectedYear, targetMonth = selectedMonth, targetWeek = selectedWeek) => {
@@ -976,21 +1001,6 @@ export default function App() {
               </motion.div>
             )}
 
-            {activeTab === 'map' && (
-              <motion.div
-                key="map"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="h-[600px] md:h-[700px] rounded-[40px] overflow-hidden shadow-2xl border border-gray-200/20 glass"
-              >
-                <MapView 
-                  locations={locations} 
-                  isDarkMode={isDarkMode} 
-                />
-              </motion.div>
-            )}
-
             {activeTab === 'logistics' && (
               <motion.div
                 key="logistics"
@@ -1092,7 +1102,8 @@ export default function App() {
                 <Check className="w-10 h-10 text-emerald-500" />
               </div>
               <h3 className={`text-2xl font-black mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>저장 완료!</h3>
-              <p className="text-gray-500 font-medium mb-8 text-sm">기록이 성공적으로 전송되었습니다.</p>
+              <p className="text-gray-500 font-medium mb-1 text-sm">기록이 성공적으로 전송되었습니다.</p>
+              <p className="text-emerald-500/80 font-bold mb-8 text-xs">{countdown}초 뒤에 자동으로 확인됩니다.</p>
               <button 
                 onClick={() => setIsSuccessModalOpen(false)}
                 className="w-full bg-[#059669] text-white py-4 rounded-2xl font-black text-lg shadow-lg shadow-emerald-500/30 active:scale-95 transition-all"
