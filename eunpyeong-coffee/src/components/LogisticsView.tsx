@@ -379,22 +379,22 @@ export default function LogisticsView({ logs, searchTerm, setSearchTerm, onEdit,
                   <div className="space-y-3">
                     <span className="text-[11px] font-black text-[#8E8E93] uppercase tracking-wider">보정 예정 중량 미리보기</span>
                     <div className={`border rounded-2xl overflow-hidden max-h-48 overflow-y-auto ${isDarkMode ? 'border-white/5 bg-white/5' : 'border-gray-100 bg-gray-50/50'}`}>
-                      <table className="w-full text-left border-collapse text-xs">
+                      <table className="w-full text-left border-collapse text-xs table-fixed">
                         <thead>
                           <tr className={`border-b ${isDarkMode ? 'border-white/10 bg-white/5 text-gray-400' : 'border-gray-200/50 bg-gray-100 text-gray-500'}`}>
-                            <th className="p-3 font-black">매장명</th>
-                            <th className="p-3 font-black text-right">기존 중량</th>
-                            <th className="p-3 font-black text-center">➔</th>
-                            <th className="p-3 font-black text-right text-emerald-500">보정 후</th>
+                            <th className="p-2 sm:p-3 font-black w-[45%] sm:w-auto">매장명</th>
+                            <th className="p-2 sm:p-3 font-black text-right w-[25%] sm:w-auto">기존</th>
+                            <th className="p-2 sm:p-3 font-black text-center w-[10%] sm:w-auto">➔</th>
+                            <th className="p-2 sm:p-3 font-black text-right text-emerald-500 w-[20%] sm:w-auto">보정 후</th>
                           </tr>
                         </thead>
                         <tbody>
                           {adjustedPreview.map(p => (
                             <tr key={p.id} className={`border-b ${isDarkMode ? 'border-white/5 hover:bg-white/10' : 'border-gray-100 hover:bg-gray-100/50'}`}>
-                              <td className="p-3 font-bold text-gray-700 dark:text-gray-300">{p.storeName}</td>
-                              <td className="p-3 text-right font-medium text-gray-500">{p.original.toFixed(1)} kg</td>
-                              <td className="p-3 text-center text-gray-400 font-black">➔</td>
-                              <td className="p-3 text-right font-black text-emerald-500">{p.adjusted} kg</td>
+                              <td className="p-2 sm:p-3 font-bold text-gray-700 dark:text-gray-300 truncate max-w-[130px] sm:max-w-none" title={p.storeName}>{p.storeName}</td>
+                              <td className="p-2 sm:p-3 text-right font-medium text-gray-500 whitespace-nowrap">{p.original.toFixed(1)} kg</td>
+                              <td className="p-2 sm:p-3 text-center text-gray-400 font-black">➔</td>
+                              <td className="p-2 sm:p-3 text-right font-black text-emerald-500 whitespace-nowrap">{p.adjusted} kg</td>
                             </tr>
                           ))}
                         </tbody>
@@ -468,13 +468,13 @@ export default function LogisticsView({ logs, searchTerm, setSearchTerm, onEdit,
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20 }}
                   transition={{ delay: i * 0.05 }}
-                  className={`flex items-center justify-between p-6 rounded-3xl hover:bg-emerald-500/5 transition-colors group ${i !== displayedLogs.length - 1 ? 'border-b border-white/5' : ''}`}
+                  className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 sm:p-6 rounded-3xl hover:bg-emerald-500/5 transition-colors group ${i !== displayedLogs.length - 1 ? 'border-b border-white/5' : ''}`}
                 >
-                  <div className="flex items-center gap-6">
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-[15px] transition-all group-hover:scale-110 ${isDarkMode ? 'bg-white/5 text-emerald-400 border border-white/10' : 'bg-gray-50 text-emerald-600 border border-gray-100 shadow-sm'}`}>
+                  <div className="flex items-start sm:items-center gap-4 sm:gap-6 min-w-0 w-full sm:w-auto">
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-[15px] transition-all group-hover:scale-110 shrink-0 ${isDarkMode ? 'bg-white/5 text-emerald-400 border border-white/10' : 'bg-gray-50 text-emerald-600 border border-gray-100 shadow-sm'}`}>
                       {l.seq}
                     </div>
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <p className={`font-black text-[18px] tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{l.storeName}</p>
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 opacity-70">
                         <div className="flex items-center gap-1.5 text-emerald-500">
@@ -521,7 +521,7 @@ export default function LogisticsView({ logs, searchTerm, setSearchTerm, onEdit,
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto pt-3 sm:pt-0 border-t border-dashed border-white/10 sm:border-t-0 shrink-0">
                     <div className="text-right">
                       {l.isSkipped ? (
                         <span className="font-black text-[16px] text-[#8E8E93] tracking-tight">{l.weight}</span>

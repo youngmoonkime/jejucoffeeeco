@@ -664,33 +664,33 @@ export default function App() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3 md:gap-6 self-end md:self-auto w-full md:w-auto justify-between md:justify-end">
+            <div className="flex items-center gap-2 sm:gap-3 md:gap-6 self-end md:self-auto w-full md:w-auto justify-between md:justify-end">
               {/* Weather Widget (Small - Header) */}
-              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border border-white/10 shadow-sm ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
-                <div className="w-7 h-7 rounded-lg bg-[#059669]/10 flex items-center justify-center text-[#059669]">
-                  {weather.condition === '맑음' ? <Sun size={14} /> : weather.condition === '비/눈' ? <CloudRain size={14} /> : <Cloud size={14} />}
+              <div className={`flex items-center gap-1.5 px-2 py-1 sm:px-3 sm:py-1.5 rounded-xl border border-white/10 shadow-sm ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-[#059669]/10 flex items-center justify-center text-[#059669]">
+                  {weather.condition === '맑음' ? <Sun className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : weather.condition === '비/눈' ? <CloudRain className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Cloud className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-bold text-[#8E8E93] leading-none">은평</span>
-                  <span className={`text-sm font-bold leading-none ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{weather.temp}°</span>
+                  <span className="text-[9px] sm:text-[10px] font-bold text-[#8E8E93] leading-none">은평</span>
+                  <span className={`text-xs sm:text-sm font-bold leading-none ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{weather.temp}°</span>
                 </div>
               </div>
 
               {/* Vehicle Status */}
-              <div className={`flex items-center gap-3 px-4 py-2 rounded-2xl border border-white/10 shadow-sm ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 bg-[#059669] rounded-full animate-pulse shadow-[0_0_10px_rgba(5,150,105,0.5)]"></span>
-                  <span className={`text-xs font-bold tracking-wide whitespace-nowrap ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>810저 7247</span>
+              <div className={`flex items-center gap-2 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-2xl border border-white/10 shadow-sm ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 bg-[#059669] rounded-full animate-pulse shadow-[0_0_10px_rgba(5,150,105,0.5)]"></span>
+                  <span className={`text-[10px] sm:text-xs font-bold tracking-wide whitespace-nowrap ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>810저 7247</span>
                 </div>
               </div>
 
               {/* Controls */}
-              <div className="flex items-center gap-3 pl-2">
-                <button onClick={() => setIsDarkMode(!isDarkMode)} className={`p-3 rounded-full transition-all active:scale-95 ${isDarkMode ? 'bg-yellow-400 text-black' : 'bg-white text-gray-400 hover:text-gray-600 shadow-sm'}`}>
-                  {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+              <div className="flex items-center gap-2 pl-1 sm:pl-2">
+                <button onClick={() => setIsDarkMode(!isDarkMode)} className={`p-2.5 sm:p-3 rounded-full transition-all active:scale-95 ${isDarkMode ? 'bg-yellow-400 text-black' : 'bg-white text-gray-400 hover:text-gray-600 shadow-sm'}`}>
+                  {isDarkMode ? <Sun className="w-4.5 h-4.5 sm:w-5 sm:h-5" /> : <Moon className="w-4.5 h-4.5 sm:w-5 sm:h-5" />}
                 </button>
-                <button onClick={() => syncWithSupabase(selectedYear, selectedMonth, selectedWeek)} disabled={isSyncing} className={`p-3 rounded-full hover:opacity-80 active:scale-95 transition-all ${isDarkMode ? 'bg-gray-800' : 'bg-[#059669] text-white shadow-lg shadow-emerald-200'}`}>
-                  <RefreshCw size={20} className={`${isSyncing ? 'animate-spin' : ''}`} />
+                <button onClick={() => syncWithSupabase(selectedYear, selectedMonth, selectedWeek)} disabled={isSyncing} className={`p-2.5 sm:p-3 rounded-full hover:opacity-80 active:scale-95 transition-all ${isDarkMode ? 'bg-gray-800' : 'bg-[#059669] text-white shadow-lg shadow-emerald-200'}`}>
+                  <RefreshCw className={`w-4.5 h-4.5 sm:w-5 sm:h-5 ${isSyncing ? 'animate-spin' : ''}`} />
                 </button>
               </div>
             </div>

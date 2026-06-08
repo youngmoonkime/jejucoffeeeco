@@ -20,6 +20,14 @@ body {
   background-color: var(--color-premium-light);
   color: #1d1d1f;
   -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.025em; /* 한글 자간 최적화 */
+  word-break: keep-all; /* 한글 단어 단위 줄바꿈 */
+  overflow-wrap: break-word; /* 영역 이탈 방지 */
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+  letter-spacing: -0.025em;
 }
 
 ::selection {
