@@ -195,7 +195,18 @@ export default function App() {
       
       const url = `${urlBase}?sheet=${encodeURIComponent(sheetName)}&t=${timestamp}`;
       const response = await fetch(url, { redirect: 'follow' });
-      const result = await response.json();
+      
+      const contentType = response.headers.get("content-type");
+      if (!response.ok || (contentType && contentType.includes("text/html"))) {
+        throw new Error(`구글 시트 웹 앱 연결에 실패했습니다 (상태 코드: ${response.status}). 요청한 '${sheetName}' 시트가 스프레드시트에 실제로 존재하는지 확인해 주세요.`);
+      }
+
+      let result;
+      try {
+        result = await response.json();
+      } catch (jsonErr) {
+        throw new Error(`응답 데이터를 파싱하지 못했습니다. '${sheetName}' 시트 탭이 생성되어 있고 정상 동작하는지 확인해 주세요.`);
+      }
 
       if (result.error) {
         throw new Error(`${result.error} (요청한 시트: '${sheetName}') - 시트 하단의 탭 이름과 정확히 일치하는지 확인해주세요.`);
@@ -805,6 +816,9 @@ export default function App() {
                     setIsInputModalOpen(true);
                   }}
                   isDarkMode={isDarkMode} 
+                  selectedYear={selectedYear}
+                  selectedMonth={selectedMonth}
+                  onRefresh={() => syncWithSupabase(selectedYear, selectedMonth, selectedWeek)}
                 />
               </motion.div>
             )}
