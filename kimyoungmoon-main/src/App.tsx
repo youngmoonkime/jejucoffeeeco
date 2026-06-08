@@ -20,6 +20,128 @@ const RANCHES = [
 
 import { supabase } from './utils/supabase';
 
+/**
+ * 구글 시트에서 가져온 시간 데이터 문자열을 iOS Safari 및 기타 브라우저에서
+ * 안전하게 KST(한국 표준시) 기준으로 HH:MM 형식으로 변환합니다.
+ * 
+ * @param timeStr 원본 시간 문자열 (예: "1899-12-30T03:03:00.000Z", "12:03:00", "기록됨" 등)
+ * @returns 포맷팅된 시간 문자열 (HH:MM)
+ */
+function formatTimeSafely(timeStr: string): string {
+  if (!timeStr) return '';
+  const trimmed = timeStr.trim();
+  
+  if (trimmed === '기록됨' || trimmed === '제외됨' || trimmed === '-') {
+    return trimmed;
+  }
+
+  // 1. 단순 HH:MM 또는 HH:MM:SS 형식 확인 (예: "12:03", "12:03:00")
+  const simpleTimeRegex = /^(\d{1,2}):(\d{2})(?::(\d{2}))?$/;
+  const simpleMatch = trimmed.match(simpleTimeRegex);
+  if (simpleMatch) {
+    const hh = simpleMatch[1].padStart(2, '0');
+    const mm = simpleMatch[2];
+    return `${hh}:${mm}`;
+  }
+
+  // 2. ISO Date 형식인 경우 (예: "1899-12-30T03:03:00.000Z")
+  // 타임존 지시자(Z 또는 +00:00)가 있으면 KST(UTC+9)를 반영해 보정함
+  if (trimmed.includes('T') && (trimmed.endsWith('Z') || trimmed.includes('+00:00'))) {
+    try {
+      const date = new Date(trimmed);
+      if (!isNaN(date.getTime())) {
+        const kstDate = new Date(date.getTime() + (9 * 60 * 60 * 1000));
+        const hh = String(kstDate.getUTCHours()).padStart(2, '0');
+        const mm = String(kstDate.getUTCMinutes()).padStart(2, '0');
+        return `${hh}:${mm}`;
+      }
+    } catch (e) {
+      console.error("Time ISO parsing error:", e);
+    }
+  }
+
+  // 3. 로컬 날짜 시간 문자열 형식인 경우 (예: "Sat Dec 30 1899 12:03:00 GMT+0900 (KST)")
+  // iOS에서 괄호와 타임존 때문에 new Date 파싱이 안 되는 문제 대응을 위해 정규식으로 시간 부분을 강제 추출
+  const timeInStringRegex = /(\d{1,2}):(\d{2}):(\d{2})/;
+  const match = trimmed.match(timeInStringRegex);
+  if (match) {
+    const hh = match[1].padStart(2, '0');
+    const mm = match[2];
+    return `${hh}:${mm}`;
+  }
+  
+  const shortTimeInStringRegex = /(\d{1,2}):(\d{2})/;
+  const shortMatch = trimmed.match(shortTimeInStringRegex);
+  if (shortMatch) {
+    const hh = shortMatch[1].padStart(2, '0');
+    const mm = shortMatch[2];
+    return `${hh}:${mm}`;
+  }
+
+  // 4. 최후의 수단으로 괄호 제거 후 new Date 파싱 시도
+  let cleanStr = trimmed.replace(/\s*\([^)]*\)$/, '');
+  try {
+    const date = new Date(cleanStr);
+    if (!isNaN(date.getTime())) {
+      const hh = String(date.getHours()).padStart(2, '0');
+      const mm = String(date.getMinutes()).padStart(2, '0');
+      return `${hh}:${mm}`;
+    }
+  } catch (e) {
+    console.error("Time fallback parsing error:", e);
+  }
+
+  return trimmed;
+}
+
+/**
+ * 구글 시트에서 가져온 날짜 데이터 문자열을 iOS Safari 및 기타 브라우저에서
+ * 안전하게 KST(한국 표준시) 기준으로 YYYY-MM-DD 형식으로 변환합니다.
+ * 
+ * @param dateStr 원본 날짜 문자열 (예: "2026-06-08T15:00:00.000Z", "2026.06.08", "1주차" 등)
+ * @returns 포맷팅된 날짜 문자열 (YYYY-MM-DD)
+ */
+function formatDateSafely(dateStr: string): string {
+  if (!dateStr) return '';
+  const trimmed = dateStr.trim();
+  
+  // 1. 이미 YYYY-MM-DD 형식인 경우
+  const simpleDateRegex = /^(\d{4})-(\d{2})-(\d{2})$/;
+  if (simpleDateRegex.test(trimmed)) {
+    return trimmed;
+  }
+
+  // 2. YYYY/MM/DD 또는 YYYY.MM.DD 형식인 경우 YYYY-MM-DD로 변환
+  const alternativeDateRegex = /^(\d{4})[./](\d{2})[./](\d{2})$/;
+  const altMatch = trimmed.match(alternativeDateRegex);
+  if (altMatch) {
+    return `${altMatch[1]}-${altMatch[2]}-${altMatch[3]}`;
+  }
+
+  // 3. "1주차" 등 시트에서 특정 텍스트로 바로 들어온 경우 그대로 반환
+  if (trimmed.includes('주차')) {
+    return trimmed;
+  }
+
+  // 4. ISO Date 및 로컬 Date 문자열 파싱
+  let cleanStr = trimmed.replace(/\s*\([^)]*\)$/, '');
+  
+  try {
+    const date = new Date(cleanStr);
+    if (!isNaN(date.getTime())) {
+      const kstDate = new Date(date.getTime() + (9 * 60 * 60 * 1000));
+      const y = kstDate.getUTCFullYear();
+      const m = String(kstDate.getUTCMonth() + 1).padStart(2, '0');
+      const d = String(kstDate.getUTCDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+  } catch (e) {
+    console.error("Date parsing error:", e);
+  }
+
+  return trimmed;
+}
+
 // Helper to parse sheet data (Legacy - kept for fallback or reference)
 const parseSheetData = (result: any, currentRequestMonth: string) => {
   // ... (기존 로직 유지하되 사용 안 함)
@@ -498,8 +620,8 @@ export default function App() {
           id: `ranch-${fw.label}`,
           weekLabel: fw.label,
           weight: fw.weight,
-          date: dateColIndex !== -1 && ranchRow[dateColIndex] ? String(ranchRow[dateColIndex]) : fw.label,
-          time: timeColIndex !== -1 && ranchRow[timeColIndex] ? String(ranchRow[timeColIndex]) : '기록됨',
+          date: formatDateSafely(dateColIndex !== -1 && ranchRow[dateColIndex] ? String(ranchRow[dateColIndex]) : fw.label),
+          time: formatTimeSafely(timeColIndex !== -1 && ranchRow[timeColIndex] ? String(ranchRow[timeColIndex]) : '기록됨'),
           // 상세 필드는 마지막 주차에만 첨부
           ...(i === filledWeeks.length - 1 ? detailFields : { depth: '', temp: '', humidity: '', workingTime: '', moisture: '', mixture: '', memo: '' }),
         }));
@@ -886,6 +1008,11 @@ export default function App() {
                     setIsInputModalOpen(true);
                   }}
                   isDarkMode={isDarkMode} 
+                  selectedYear={selectedYear}
+                  selectedMonth={selectedMonth}
+                  onRefresh={async () => {
+                    await syncWithSupabase(selectedYear, selectedMonth, selectedWeek);
+                  }}
                 />
               </motion.div>
             )}
