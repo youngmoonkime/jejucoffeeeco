@@ -692,7 +692,7 @@ export default function App() {
   const completedLocations = cafeLocations.filter(l => l.status === 'done' || l.status === 'skipped');
 
   return (
-    <div className={`flex h-screen overflow-hidden transition-colors duration-500 ${isDarkMode ? "dark bg-[#1C1C1E] text-[#F5F5F7]" : "bg-[#F5F5F7] text-[#1D1D1F]"}`}>
+    <div className={`flex h-[100dvh] overflow-hidden transition-colors duration-500 ${isDarkMode ? "dark bg-[#1C1C1E] text-[#F5F5F7]" : "bg-[#F5F5F7] text-[#1D1D1F]"}`}>
       <Sidebar 
         activeTab={activeTab} 
         setActiveTab={setActiveTab} 
@@ -701,7 +701,7 @@ export default function App() {
         onClose={() => setIsSidebarOpen(false)}
       />
       
-      <main className={`flex-1 h-full overflow-y-auto p-4 md:p-6 lg:p-6 transition-all duration-300 lg:ml-[100px] flex flex-col`}>
+      <main className={`flex-1 h-full overflow-y-auto [-webkit-overflow-scrolling:touch] p-4 md:p-6 lg:p-6 transition-all duration-300 lg:ml-[100px] flex flex-col`}>
         <div className="w-full min-h-full flex flex-col pb-20 lg:pb-0">
           {/* Header */}
           <header className={`p-4 md:p-6 rounded-[32px] mb-6 gap-4 md:gap-0 shrink-0 relative glass flex flex-col md:flex-row justify-between items-start md:items-end`}>

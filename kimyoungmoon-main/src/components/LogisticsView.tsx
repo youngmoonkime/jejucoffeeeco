@@ -464,10 +464,10 @@ export default function LogisticsView({ logs, searchTerm, setSearchTerm, onEdit,
               displayedLogs.map((l, i) => (
                 <motion.div 
                   key={l.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  transition={{ delay: i * 0.05 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
                   className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 sm:p-6 rounded-3xl hover:bg-emerald-500/5 transition-colors group ${i !== displayedLogs.length - 1 ? 'border-b border-white/5' : ''}`}
                 >
                   <div className="flex items-start sm:items-center gap-4 sm:gap-6 min-w-0 w-full sm:w-auto">
