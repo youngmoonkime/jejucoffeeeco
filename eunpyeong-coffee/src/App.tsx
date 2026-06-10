@@ -722,7 +722,7 @@ export default function App() {
       />
       
       <main className={`flex-1 h-full overflow-y-auto p-4 md:p-6 lg:p-6 transition-all duration-300 lg:ml-[100px] flex flex-col`}>
-        <div className="w-full h-full flex flex-col pb-20 lg:pb-0">
+        <div className="w-full min-h-full flex flex-col pb-20 lg:pb-0">
           {/* Header */}
           <header className={`p-4 md:p-6 rounded-[32px] mb-6 gap-4 md:gap-0 shrink-0 relative glass flex flex-col md:flex-row justify-between items-start md:items-end`}>
             {/* Toast Message */}

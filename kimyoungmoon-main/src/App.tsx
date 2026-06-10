@@ -508,12 +508,15 @@ export default function App() {
             const weekTimeIndex = headerRow.findIndex((cell: any) => String(cell).includes(label) && (String(cell).includes('시간') || String(cell).includes('시각')));
             const weekDateIndex = headerRow.findIndex((cell: any) => String(cell).includes(label) && (String(cell).includes('날짜') || String(cell).includes('일자')));
 
-            const actualTime = weekTimeIndex !== -1 && row[weekTimeIndex] ? String(row[weekTimeIndex]) : 
-                              (timeColIndex !== -1 && row[timeColIndex] ? String(row[timeColIndex]) : 
-                               (submissionsRef.current[`${locName}-${label}`]?.time || '기록됨'));
-            const actualDate = weekDateIndex !== -1 && row[weekDateIndex] ? String(row[weekDateIndex]) : 
-                              (dateColIndex !== -1 && row[dateColIndex] ? String(row[dateColIndex]) : 
-                               (submissionsRef.current[`${locName}-${label}`]?.date || label));
+            const rawTime = weekTimeIndex !== -1 && row[weekTimeIndex] ? String(row[weekTimeIndex]) : 
+                            (timeColIndex !== -1 && row[timeColIndex] ? String(row[timeColIndex]) : 
+                             (submissionsRef.current[`${locName}-${label}`]?.time || '기록됨'));
+            const actualTime = formatTimeSafely(rawTime);
+
+            const rawDate = weekDateIndex !== -1 && row[weekDateIndex] ? String(row[weekDateIndex]) : 
+                            (dateColIndex !== -1 && row[dateColIndex] ? String(row[dateColIndex]) : 
+                             (submissionsRef.current[`${locName}-${label}`]?.date || label));
+            const actualDate = formatDateSafely(rawDate);
 
             const rawCategory = categoryColIndex !== -1 && row[categoryColIndex] !== undefined && row[categoryColIndex] !== null ? String(row[categoryColIndex]).trim().replace(/\s/g, '') : '';
             const isRanchData = locName === '다원목장' || rawCategory === '제주우유까대기' || rawCategory === '목장데이터';
@@ -699,7 +702,7 @@ export default function App() {
       />
       
       <main className={`flex-1 h-full overflow-y-auto p-4 md:p-6 lg:p-6 transition-all duration-300 lg:ml-[100px] flex flex-col`}>
-        <div className="w-full h-full flex flex-col pb-20 lg:pb-0">
+        <div className="w-full min-h-full flex flex-col pb-20 lg:pb-0">
           {/* Header */}
           <header className={`p-4 md:p-6 rounded-[32px] mb-6 gap-4 md:gap-0 shrink-0 relative glass flex flex-col md:flex-row justify-between items-start md:items-end`}>
             {/* Toast Message */}
