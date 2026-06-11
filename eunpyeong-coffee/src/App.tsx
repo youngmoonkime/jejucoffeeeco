@@ -335,6 +335,7 @@ export default function App() {
       }
 
       const { data } = result;
+      const fetchedLogs = result.logs || [];
       const headerRow = data.find((row: any[]) => row.includes('매장명'));
       if (!headerRow) throw new Error("시트 양식 에러");
 
@@ -532,14 +533,23 @@ export default function App() {
             const weekTimeIndex = headerRow.findIndex((cell: any) => String(cell).includes(label) && (String(cell).includes('시간') || String(cell).includes('시각')));
             const weekDateIndex = headerRow.findIndex((cell: any) => String(cell).includes(label) && (String(cell).includes('날짜') || String(cell).includes('일자')));
 
-            const rawTime = weekTimeIndex !== -1 && row[weekTimeIndex] ? String(row[weekTimeIndex]) : 
-                            (timeColIndex !== -1 && row[timeColIndex] ? String(row[timeColIndex]) : 
-                             (submissionsRef.current[`${locName}-${label}`]?.time || '기록됨'));
+            const matchedLog = fetchedLogs.find((l: any) => 
+              String(l.연도) === targetYear &&
+              String(l.월) === targetMonth &&
+              String(l.주차) === label &&
+              String(l.매장명).trim() === locName
+            );
+
+            const rawTime = matchedLog && matchedLog.시간 ? String(matchedLog.시간) :
+                            (weekTimeIndex !== -1 && row[weekTimeIndex] ? String(row[weekTimeIndex]) : 
+                             (timeColIndex !== -1 && row[timeColIndex] ? String(row[timeColIndex]) : 
+                              (submissionsRef.current[`${locName}-${label}`]?.time || '기록됨')));
             const actualTime = formatTimeSafely(rawTime);
 
-            const rawDate = weekDateIndex !== -1 && row[weekDateIndex] ? String(row[weekDateIndex]) : 
-                            (dateColIndex !== -1 && row[dateColIndex] ? String(row[dateColIndex]) : 
-                             (submissionsRef.current[`${locName}-${label}`]?.date || label));
+            const rawDate = matchedLog && matchedLog.날짜 ? String(matchedLog.날짜) :
+                            (weekDateIndex !== -1 && row[weekDateIndex] ? String(row[weekDateIndex]) : 
+                             (dateColIndex !== -1 && row[dateColIndex] ? String(row[dateColIndex]) : 
+                              (submissionsRef.current[`${locName}-${label}`]?.date || label)));
             const actualDate = formatDateSafely(rawDate);
 
             const rawCategory = categoryColIndex !== -1 && row[categoryColIndex] !== undefined && row[categoryColIndex] !== null ? String(row[categoryColIndex]).trim().replace(/\s/g, '') : '';
@@ -668,15 +678,26 @@ export default function App() {
           memo: memoColIndex !== -1 && ranchRow[memoColIndex] !== undefined ? String(ranchRow[memoColIndex]) : '',
         };
 
-        const tempRanchLogs = filledWeeks.map((fw, i) => ({
-          id: `ranch-${fw.label}`,
-          weekLabel: fw.label,
-          weight: fw.weight,
-          date: formatDateSafely(dateColIndex !== -1 && ranchRow[dateColIndex] ? String(ranchRow[dateColIndex]) : fw.label),
-          time: formatTimeSafely(timeColIndex !== -1 && ranchRow[timeColIndex] ? String(ranchRow[timeColIndex]) : '기록됨'),
-          // 상세 필드는 마지막 주차에만 첨부
-          ...(i === filledWeeks.length - 1 ? detailFields : { depth: '', temp: '', humidity: '', workingTime: '', moisture: '', mixture: '', memo: '' }),
-        }));
+        const tempRanchLogs = filledWeeks.map((fw, i) => {
+          const matchedRanchLog = fetchedLogs.find((l: any) => 
+            String(l.연도) === targetYear &&
+            String(l.월) === targetMonth &&
+            String(l.주차) === fw.label &&
+            String(l.매장명).trim() === '다원목장'
+          );
+          
+          return {
+            id: `ranch-${fw.label}`,
+            weekLabel: fw.label,
+            weight: fw.weight,
+            date: matchedRanchLog && matchedRanchLog.날짜 ? formatDateSafely(String(matchedRanchLog.날짜)) :
+                  formatDateSafely(dateColIndex !== -1 && ranchRow[dateColIndex] ? String(ranchRow[dateColIndex]) : fw.label),
+            time: matchedRanchLog && matchedRanchLog.시간 ? formatTimeSafely(String(matchedRanchLog.시간)) :
+                  formatTimeSafely(timeColIndex !== -1 && ranchRow[timeColIndex] ? String(ranchRow[timeColIndex]) : '기록됨'),
+            // 상세 필드는 마지막 주차에만 첨부
+            ...(i === filledWeeks.length - 1 ? detailFields : { depth: '', temp: '', humidity: '', workingTime: '', moisture: '', mixture: '', memo: '' }),
+          };
+        });
         setRanchLogs(tempRanchLogs);
       } else {
         setRanchLogs([]);

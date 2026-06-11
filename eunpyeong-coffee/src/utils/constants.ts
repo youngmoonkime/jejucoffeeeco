@@ -4,7 +4,7 @@ export const APPS_SCRIPT_URLS: Record<string, string> = {
   "2025":
     "https://script.google.com/macros/s/AKfycbyK85yXiY0oMkMzbqFrUPSbFYJOttvZsqePJ5OPYmdtRaHKgO_bUhxhyDFb8-n0_416/exec",
   "2026":
-    "https://script.google.com/macros/s/AKfycbzabSmyYpAGEPSme1RQaZAvx4Bem16-Zcb6-FEmCwUIhpUK7dxLMO6XMMdht8-_wa38/exec",
+    "https://script.google.com/macros/s/AKfycbzkaIxtDpU8_3PRxQTnAhwoMGRotK1CIwbisExQtIhb-UYWRz2JCiyfj6KhLXMaJsHW/exec",
 };
 
 export const EUNPYEONG_COORDS: Record<string, { lat: number; lng: number }> = {
